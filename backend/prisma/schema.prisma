@@ -1,0 +1,198 @@
+// MenuQR SaaS - PostgreSQL Schema
+// Multi-tenant: restaurant_id on tenant-scoped tables
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PLATFORM_OWNER
+  RESTAURANT_ADMIN
+  CUSTOMER
+}
+
+enum SubscriptionPlan {
+  BASIC
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIAL
+  PAST_DUE
+  CANCELLED
+  SUSPENDED
+}
+
+enum Currency {
+  USD
+  TRY
+  SYP
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          Role      @default(RESTAURANT_ADMIN)
+  restaurantId  String?   @map("restaurant_id")
+  restaurant    Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+  refreshTokens RefreshToken[]
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([restaurantId])
+  @@index([email, role])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model Restaurant {
+  id          String    @id @default(cuid())
+  name        String    // English name
+  nameAr      String?   @map("name_ar") // Arabic name
+  slug        String    @unique
+  description String?   @db.Text // English
+  descriptionAr String? @map("description_ar") @db.Text // Arabic
+  logo        String?
+  coverImage  String?   @map("cover_image")
+  phone       String?
+  address     String?   @db.Text   // English address
+  addressAr   String?   @map("address_ar") @db.Text // Arabic address
+  latitude    Decimal?  @db.Decimal(10, 7)
+  longitude   Decimal?  @db.Decimal(11, 7)
+  whatsapp    String?
+  email       String?
+  isActive    Boolean   @default(true) @map("is_active")
+  sortOrder   Int       @default(0) @map("sort_order")
+  currency    Currency  @default(USD)
+  defaultLocale String  @default("ar") @map("default_locale") // "en" | "ar"
+  localesEnabled Json?  @map("locales_enabled") // ["en", "ar"] or { "en": true, "ar": true }
+
+  openingHours Json?    @map("opening_hours")
+  socialLinks  Json?    @map("social_links")
+
+  users         User[]
+  categories    Category[]
+  products      Product[]
+  subscriptions Subscription[]
+  menuViews     MenuView[]
+  qrScans       QrScan[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("restaurants")
+}
+
+model Category {
+  id           String   @id @default(cuid())
+  restaurantId String   @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name         String   // English name
+  nameAr       String?  @map("name_ar") // Arabic name
+  slug         String
+  image        String?
+  sortOrder    Int      @default(0) @map("sort_order")
+  products     Product[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([restaurantId, slug])
+  @@index([restaurantId])
+  @@map("categories")
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  restaurantId String   @map("restaurant_id")
+  categoryId   String   @map("category_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  category     Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name         String   // English name
+  nameAr       String?  @map("name_ar") // Arabic name
+  slug         String
+  description  String?   @db.Text // English
+  descriptionAr String? @map("description_ar") @db.Text // Arabic
+  price        Decimal   @db.Decimal(10, 2)
+  image        String?
+  isAvailable  Boolean   @default(true) @map("is_available")
+  isPopular    Boolean   @default(false) @map("is_popular")
+  sortOrder    Int       @default(0) @map("sort_order")
+  ingredients  String?   @db.Text
+  calories     Int?
+  allergens    String?   @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([restaurantId, slug])
+  @@index([restaurantId])
+  @@index([categoryId])
+  @@map("products")
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  restaurantId   String             @map("restaurant_id")
+  restaurant     Restaurant         @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  plan           SubscriptionPlan   @default(BASIC)
+  status         SubscriptionStatus @default(ACTIVE)
+  isYearly       Boolean            @default(false) @map("is_yearly")
+  startDate      DateTime           @map("start_date")
+  endDate        DateTime           @map("end_date")
+  stripeCustomerId String?          @map("stripe_customer_id")
+  stripeSubscriptionId String?      @map("stripe_subscription_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([restaurantId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+// Lightweight analytics (counts)
+model MenuView {
+  id           String   @id @default(cuid())
+  restaurantId String   @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  viewedAt     DateTime @default(now()) @map("viewed_at")
+  // Optional: sessionId, userAgent for dedup
+
+  @@index([restaurantId])
+  @@index([viewedAt])
+  @@map("menu_views")
+}
+
+model QrScan {
+  id           String   @id @default(cuid())
+  restaurantId String   @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  scannedAt    DateTime @default(now()) @map("scanned_at")
+
+  @@index([restaurantId])
+  @@index([scannedAt])
+  @@map("qr_scans")
+}
