@@ -1,5 +1,3 @@
-'use client';
-
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { translate, type Locale as LocaleType } from '@/lib/translations';
 
@@ -19,17 +17,10 @@ type LocaleContextValue = {
 };
 
 const defaultEnabled: Locale[] = ['ar', 'en'];
-
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
-function resolveInitialLocale(
-  defaultLocale: Locale,
-  initialEnabled: Locale[],
-): Locale {
+function resolveInitialLocale(defaultLocale: Locale, initialEnabled: Locale[]): Locale {
   const allowed = initialEnabled.length > 0 ? initialEnabled : defaultEnabled;
-  if (typeof window === 'undefined') {
-    return allowed.includes(defaultLocale) ? defaultLocale : allowed[0];
-  }
   const stored = window.localStorage.getItem('menuqr_locale') as Locale | null;
   if (stored === 'en' || stored === 'ar') {
     if (allowed.includes(stored)) return stored;
@@ -57,7 +48,6 @@ export function LocaleProvider({
   const localeRef = useRef(locale);
   localeRef.current = locale;
 
-  // Sync with restaurant: when enabled locales change, switch to an allowed locale if current isn't
   const allowedKey = allowed.join(',');
   useEffect(() => {
     const list = allowedKey ? (allowedKey.split(',') as Locale[]) : [...defaultEnabled];
@@ -65,20 +55,18 @@ export function LocaleProvider({
     if (!list.includes(localeRef.current)) {
       const next = list.includes(defaultLocale) ? defaultLocale : list[0];
       setLocaleState(next);
-      if (typeof window !== 'undefined') window.localStorage.setItem('menuqr_locale', next);
+      window.localStorage.setItem('menuqr_locale', next);
     }
   }, [allowedKey, defaultLocale]);
 
   useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.lang = locale;
-      document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
-    }
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
   }, [locale]);
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l);
-    if (typeof window !== 'undefined') window.localStorage.setItem('menuqr_locale', l);
+    window.localStorage.setItem('menuqr_locale', l);
   }, []);
 
   const formatPrice = useCallback(
@@ -105,20 +93,24 @@ export function LocaleProvider({
 
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
-  const value: LocaleContextValue = {
-    locale,
-    setLocale,
-    dir,
-    enabledLocales,
-    setEnabledLocales,
-    currency,
-    setCurrency: setCurrencyState,
-    formatPrice,
-    localize,
-    t,
-  };
-
-  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
+  return (
+    <LocaleContext.Provider
+      value={{
+        locale,
+        setLocale,
+        dir,
+        enabledLocales,
+        setEnabledLocales,
+        currency,
+        setCurrency: setCurrencyState,
+        formatPrice,
+        localize,
+        t,
+      }}
+    >
+      {children}
+    </LocaleContext.Provider>
+  );
 }
 
 export function useLocale() {

@@ -1,0 +1,261 @@
+import { RestaurantsService } from '../restaurants/restaurants.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
+export declare class PlatformController {
+    private prisma;
+    private restaurants;
+    private subscriptions;
+    private analytics;
+    constructor(prisma: PrismaService, restaurants: RestaurantsService, subscriptions: SubscriptionsService, analytics: AnalyticsService);
+    listRestaurants(skip?: number, take?: number): Promise<{
+        data: ({
+            subscriptions: {
+                id: string;
+                restaurantId: string;
+                createdAt: Date;
+                updatedAt: Date;
+                plan: import(".prisma/client").$Enums.SubscriptionPlan;
+                status: import(".prisma/client").$Enums.SubscriptionStatus;
+                isYearly: boolean;
+                startDate: Date;
+                endDate: Date;
+                stripeCustomerId: string | null;
+                stripeSubscriptionId: string | null;
+            }[];
+            _count: {
+                categories: number;
+                products: number;
+            };
+        } & {
+            id: string;
+            email: string | null;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            slug: string;
+            nameAr: string | null;
+            description: string | null;
+            descriptionAr: string | null;
+            logo: string | null;
+            coverImage: string | null;
+            phone: string | null;
+            address: string | null;
+            addressAr: string | null;
+            latitude: import("@prisma/client/runtime/library").Decimal | null;
+            longitude: import("@prisma/client/runtime/library").Decimal | null;
+            whatsapp: string | null;
+            isActive: boolean;
+            sortOrder: number;
+            currency: import(".prisma/client").$Enums.Currency;
+            defaultLocale: string;
+            localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
+            openingHours: import("@prisma/client/runtime/library").JsonValue | null;
+            socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
+        })[];
+        total: number;
+        skip: number;
+        take: number;
+    }>;
+    createRestaurant(body: {
+        name: string;
+        slug?: string;
+        description?: string;
+    }): Promise<{
+        id: string;
+        email: string | null;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        slug: string;
+        nameAr: string | null;
+        description: string | null;
+        descriptionAr: string | null;
+        logo: string | null;
+        coverImage: string | null;
+        phone: string | null;
+        address: string | null;
+        addressAr: string | null;
+        latitude: import("@prisma/client/runtime/library").Decimal | null;
+        longitude: import("@prisma/client/runtime/library").Decimal | null;
+        whatsapp: string | null;
+        isActive: boolean;
+        sortOrder: number;
+        currency: import(".prisma/client").$Enums.Currency;
+        defaultLocale: string;
+        localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
+        openingHours: import("@prisma/client/runtime/library").JsonValue | null;
+        socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
+    }>;
+    getRestaurant(id: string): Promise<{
+        categories: {
+            id: string;
+            name: string;
+            restaurantId: string;
+            createdAt: Date;
+            updatedAt: Date;
+            slug: string;
+            nameAr: string | null;
+            sortOrder: number;
+            image: string | null;
+        }[];
+        subscriptions: {
+            id: string;
+            restaurantId: string;
+            createdAt: Date;
+            updatedAt: Date;
+            plan: import(".prisma/client").$Enums.SubscriptionPlan;
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
+            isYearly: boolean;
+            startDate: Date;
+            endDate: Date;
+            stripeCustomerId: string | null;
+            stripeSubscriptionId: string | null;
+        }[];
+        _count: {
+            products: number;
+        };
+    } & {
+        id: string;
+        email: string | null;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        slug: string;
+        nameAr: string | null;
+        description: string | null;
+        descriptionAr: string | null;
+        logo: string | null;
+        coverImage: string | null;
+        phone: string | null;
+        address: string | null;
+        addressAr: string | null;
+        latitude: import("@prisma/client/runtime/library").Decimal | null;
+        longitude: import("@prisma/client/runtime/library").Decimal | null;
+        whatsapp: string | null;
+        isActive: boolean;
+        sortOrder: number;
+        currency: import(".prisma/client").$Enums.Currency;
+        defaultLocale: string;
+        localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
+        openingHours: import("@prisma/client/runtime/library").JsonValue | null;
+        socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
+    }>;
+    updateRestaurant(id: string, body: {
+        name?: string;
+        slug?: string;
+        description?: string;
+        isActive?: boolean;
+    }): Promise<{
+        id: string;
+        email: string | null;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        slug: string;
+        nameAr: string | null;
+        description: string | null;
+        descriptionAr: string | null;
+        logo: string | null;
+        coverImage: string | null;
+        phone: string | null;
+        address: string | null;
+        addressAr: string | null;
+        latitude: import("@prisma/client/runtime/library").Decimal | null;
+        longitude: import("@prisma/client/runtime/library").Decimal | null;
+        whatsapp: string | null;
+        isActive: boolean;
+        sortOrder: number;
+        currency: import(".prisma/client").$Enums.Currency;
+        defaultLocale: string;
+        localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
+        openingHours: import("@prisma/client/runtime/library").JsonValue | null;
+        socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
+    }>;
+    deleteRestaurant(id: string): Promise<{
+        id: string;
+        email: string | null;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        slug: string;
+        nameAr: string | null;
+        description: string | null;
+        descriptionAr: string | null;
+        logo: string | null;
+        coverImage: string | null;
+        phone: string | null;
+        address: string | null;
+        addressAr: string | null;
+        latitude: import("@prisma/client/runtime/library").Decimal | null;
+        longitude: import("@prisma/client/runtime/library").Decimal | null;
+        whatsapp: string | null;
+        isActive: boolean;
+        sortOrder: number;
+        currency: import(".prisma/client").$Enums.Currency;
+        defaultLocale: string;
+        localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
+        openingHours: import("@prisma/client/runtime/library").JsonValue | null;
+        socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
+    }>;
+    listSubscriptions(skip?: number, take?: number): Promise<{
+        data: ({
+            restaurant: {
+                id: string;
+                name: string;
+                slug: string;
+            };
+        } & {
+            id: string;
+            restaurantId: string;
+            createdAt: Date;
+            updatedAt: Date;
+            plan: import(".prisma/client").$Enums.SubscriptionPlan;
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
+            isYearly: boolean;
+            startDate: Date;
+            endDate: Date;
+            stripeCustomerId: string | null;
+            stripeSubscriptionId: string | null;
+        })[];
+        total: number;
+        skip: number;
+        take: number;
+    }>;
+    getRestaurantSubscription(id: string): Promise<{
+        id: string;
+        restaurantId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        plan: import(".prisma/client").$Enums.SubscriptionPlan;
+        status: import(".prisma/client").$Enums.SubscriptionStatus;
+        isYearly: boolean;
+        startDate: Date;
+        endDate: Date;
+        stripeCustomerId: string | null;
+        stripeSubscriptionId: string | null;
+    }>;
+    updateSubscription(id: string, body: {
+        plan?: SubscriptionPlan;
+        status?: SubscriptionStatus;
+    }): Promise<{
+        id: string;
+        restaurantId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        plan: import(".prisma/client").$Enums.SubscriptionPlan;
+        status: import(".prisma/client").$Enums.SubscriptionStatus;
+        isYearly: boolean;
+        startDate: Date;
+        endDate: Date;
+        stripeCustomerId: string | null;
+        stripeSubscriptionId: string | null;
+    }>;
+    analyticsOverview(): Promise<{
+        totalRestaurants: number;
+        totalUsers: number;
+        totalMenuViews: number;
+        totalQrScans: number;
+    }>;
+}

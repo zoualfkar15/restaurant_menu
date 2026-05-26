@@ -161,6 +161,18 @@ export const translations: Record<string, { en: string; ar: string }> = {
   'public.calories': { en: 'Calories', ar: 'السعرات' },
   'public.allergens': { en: 'Allergens', ar: 'مسببات الحساسية' },
   'public.popular': { en: 'Popular', ar: 'شائع' },
+  'public.addToCart': { en: 'Add', ar: 'أضف' },
+  'public.notFound': { en: 'Not found', ar: 'غير موجود' },
+
+  // ——— Cart ———
+  'cart.title': { en: 'Your order', ar: 'طلبك' },
+  'cart.empty': { en: 'Your cart is empty', ar: 'سلتك فارغة' },
+  'cart.viewCart': { en: 'View cart', ar: 'عرض السلة' },
+  'cart.total': { en: 'Total', ar: 'المجموع' },
+  'cart.checkout': { en: 'Checkout', ar: 'إتمام الطلب' },
+  'cart.items': { en: 'items', ar: 'عناصر' },
+  'cart.clear': { en: 'Clear cart', ar: 'إفراغ السلة' },
+  'cart.added': { en: 'Added to cart', ar: 'تمت الإضافة للسلة' },
 
   // ——— Pricing ———
   'pricing.title': { en: 'Simple pricing', ar: 'أسعار بسيطة' },

@@ -1,0 +1,158 @@
+import { RestaurantsService } from './restaurants.service';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { ProductsService } from '../products/products.service';
+export declare class RestaurantsController {
+    private restaurants;
+    private analytics;
+    private products;
+    constructor(restaurants: RestaurantsService, analytics: AnalyticsService, products: ProductsService);
+    getProduct(slug: string, productSlug: string): Promise<{
+        restaurant: {
+            id: string;
+            email: string | null;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            slug: string;
+            nameAr: string | null;
+            description: string | null;
+            descriptionAr: string | null;
+            logo: string | null;
+            coverImage: string | null;
+            phone: string | null;
+            address: string | null;
+            addressAr: string | null;
+            latitude: import("@prisma/client/runtime/library").Decimal | null;
+            longitude: import("@prisma/client/runtime/library").Decimal | null;
+            whatsapp: string | null;
+            isActive: boolean;
+            sortOrder: number;
+            currency: import(".prisma/client").$Enums.Currency;
+            defaultLocale: string;
+            localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
+            openingHours: import("@prisma/client/runtime/library").JsonValue | null;
+            socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
+        };
+        category: {
+            id: string;
+            name: string;
+            restaurantId: string;
+            createdAt: Date;
+            updatedAt: Date;
+            slug: string;
+            nameAr: string | null;
+            sortOrder: number;
+            image: string | null;
+        };
+    } & {
+        id: string;
+        name: string;
+        restaurantId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        slug: string;
+        nameAr: string | null;
+        description: string | null;
+        descriptionAr: string | null;
+        sortOrder: number;
+        image: string | null;
+        isPopular: boolean;
+        isAvailable: boolean;
+        price: import("@prisma/client/runtime/library").Decimal;
+        ingredients: string | null;
+        calories: number | null;
+        allergens: string | null;
+        categoryId: string;
+    }>;
+    getMenu(slug: string): Promise<{
+        categories: ({
+            products: {
+                id: string;
+                name: string;
+                restaurantId: string;
+                createdAt: Date;
+                updatedAt: Date;
+                slug: string;
+                nameAr: string | null;
+                description: string | null;
+                descriptionAr: string | null;
+                sortOrder: number;
+                image: string | null;
+                isPopular: boolean;
+                isAvailable: boolean;
+                price: import("@prisma/client/runtime/library").Decimal;
+                ingredients: string | null;
+                calories: number | null;
+                allergens: string | null;
+                categoryId: string;
+            }[];
+        } & {
+            id: string;
+            name: string;
+            restaurantId: string;
+            createdAt: Date;
+            updatedAt: Date;
+            slug: string;
+            nameAr: string | null;
+            sortOrder: number;
+            image: string | null;
+        })[];
+    } & {
+        id: string;
+        email: string | null;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        slug: string;
+        nameAr: string | null;
+        description: string | null;
+        descriptionAr: string | null;
+        logo: string | null;
+        coverImage: string | null;
+        phone: string | null;
+        address: string | null;
+        addressAr: string | null;
+        latitude: import("@prisma/client/runtime/library").Decimal | null;
+        longitude: import("@prisma/client/runtime/library").Decimal | null;
+        whatsapp: string | null;
+        isActive: boolean;
+        sortOrder: number;
+        currency: import(".prisma/client").$Enums.Currency;
+        defaultLocale: string;
+        localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
+        openingHours: import("@prisma/client/runtime/library").JsonValue | null;
+        socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
+    }>;
+    recordMenuView(slug: string): Promise<{
+        ok: boolean;
+    }>;
+    recordQrScan(slug: string): Promise<{
+        ok: boolean;
+    }>;
+    getProfile(slug: string): Promise<{
+        id: string;
+        email: string | null;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        slug: string;
+        nameAr: string | null;
+        description: string | null;
+        descriptionAr: string | null;
+        logo: string | null;
+        coverImage: string | null;
+        phone: string | null;
+        address: string | null;
+        addressAr: string | null;
+        latitude: import("@prisma/client/runtime/library").Decimal | null;
+        longitude: import("@prisma/client/runtime/library").Decimal | null;
+        whatsapp: string | null;
+        isActive: boolean;
+        sortOrder: number;
+        currency: import(".prisma/client").$Enums.Currency;
+        defaultLocale: string;
+        localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
+        openingHours: import("@prisma/client/runtime/library").JsonValue | null;
+        socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
+    }>;
+}
