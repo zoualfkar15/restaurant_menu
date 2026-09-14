@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import AppImage from '@/components/AppImage';
 import { useLocale } from '@/lib/locale';
-import { useCartStore } from '@/store/cartStore';
+// import { useCartStore } from '@/store/cartStore';
 
 type Product = {
   id: string;
@@ -24,22 +24,22 @@ type ProductCardProps = {
 
 function ProductCard({ product, restaurantSlug, index }: ProductCardProps) {
   const { formatPrice, localize, t } = useLocale();
-  const addItem = useCartStore((s) => s.addItem);
-  const setOpen = useCartStore((s) => s.setOpen);
+  // const addItem = useCartStore((s) => s.addItem);
+  // const setOpen = useCartStore((s) => s.setOpen);
 
-  const handleAdd = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem(restaurantSlug, {
-      productId: product.id,
-      slug: product.slug,
-      name: product.name,
-      nameAr: product.nameAr,
-      price: Number(product.price),
-      image: product.image,
-    });
-    setOpen(true);
-  };
+  // const handleAdd = (e: React.MouseEvent) => {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+  //   addItem(restaurantSlug, {
+  //     productId: product.id,
+  //     slug: product.slug,
+  //     name: product.name,
+  //     nameAr: product.nameAr,
+  //     price: Number(product.price),
+  //     image: product.image,
+  //   });
+  //   setOpen(true);
+  // };
 
   return (
     <li className="animate-slide-up" style={{ animationDelay: `${Math.min(index * 40, 200)}ms` }}>
@@ -86,13 +86,13 @@ function ProductCard({ product, restaurantSlug, index }: ProductCardProps) {
             <span className="text-menu-accent font-bold text-lg tabular-nums">
               {formatPrice(Number(product.price))}
             </span>
-            <button
+            {/* <button
               type="button"
               onClick={handleAdd}
               className="shrink-0 px-4 py-2 rounded-full bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 active:scale-95 transition-all shadow-menu-sm"
             >
               + {t('public.addToCart')}
-            </button>
+            </button> */}
           </div>
         </div>
       </Link>

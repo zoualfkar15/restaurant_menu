@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getMenu, trackMenuView } from '@/services/api';
+import { getMenu } from '@/services/api';
 import { LocaleProvider, useLocale } from '@/lib/locale';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { MenuPageSkeleton } from '@/components/Skeleton';
 import ProductCard from '@/components/menu/ProductCard';
-import CartDrawer from '@/components/menu/CartDrawer';
-import CartFab from '@/components/menu/CartFab';
+// import CartDrawer from '@/components/menu/CartDrawer';
+// import CartFab from '@/components/menu/CartFab';
 import AppImage from '@/components/AppImage';
 
 type Product = {
@@ -145,8 +145,8 @@ function MenuContent({ restaurant }: { restaurant: Restaurant }) {
         ))}
       </main>
 
-      <CartFab />
-      <CartDrawer />
+      {/* <CartFab />
+      <CartDrawer /> */}
     </div>
   );
 }
@@ -159,13 +159,21 @@ export default function MenuPage() {
 
   useEffect(() => {
     if (!slug) return;
-    trackMenuView(slug);
+    let cancelled = false;
+    setLoading(true);
+    setNotFound(false);
+
     getMenu(slug)
       .then((data) => {
+        if (cancelled) return;
         if (!data) setNotFound(true);
         else setRestaurant(data);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [slug]);
 
   if (loading) return <MenuPageSkeleton />;

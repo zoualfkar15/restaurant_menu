@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getProduct } from '@/services/api';
 import { LocaleProvider, useLocale } from '@/lib/locale';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { useCartStore } from '@/store/cartStore';
+// import { useCartStore } from '@/store/cartStore';
 import AppImage from '@/components/AppImage';
 import Spinner from '@/components/Spinner';
 
@@ -17,25 +17,25 @@ type Product = {
 
 function ProductContent({ product, restaurantSlug }: { product: Product; restaurantSlug: string }) {
   const { formatPrice, localize, t, locale } = useLocale();
-  const addItem = useCartStore((s) => s.addItem);
-  const setOpen = useCartStore((s) => s.setOpen);
+  // const addItem = useCartStore((s) => s.addItem);
+  // const setOpen = useCartStore((s) => s.setOpen);
   const isRtl = locale === 'ar';
   const restaurant = product.restaurant || { slug: restaurantSlug };
 
   useDocumentTitle(`${localize(product.name, product.nameAr)} | MenuQR`);
 
-  const handleAdd = () => {
-    if (!product.id) return;
-    addItem(restaurantSlug, {
-      productId: product.id,
-      slug: product.slug,
-      name: product.name,
-      nameAr: product.nameAr,
-      price: Number(product.price),
-      image: product.image,
-    });
-    setOpen(true);
-  };
+  // const handleAdd = () => {
+  //   if (!product.id) return;
+  //   addItem(restaurantSlug, {
+  //     productId: product.id,
+  //     slug: product.slug,
+  //     name: product.name,
+  //     nameAr: product.nameAr,
+  //     price: Number(product.price),
+  //     image: product.image,
+  //   });
+  //   setOpen(true);
+  // };
 
   return (
     <div className="min-h-screen bg-slate-50 page-enter" dir={isRtl ? 'rtl' : 'ltr'}>
@@ -79,7 +79,7 @@ function ProductContent({ product, restaurantSlug }: { product: Product; restaur
           </div>
         </div>
       </main>
-      {product.id && (
+      {/* {product.id && (
         <div className="fixed bottom-0 inset-x-0 p-4 bg-white/95 backdrop-blur border-t border-slate-100">
           <div className="max-w-2xl mx-auto">
             <button type="button" onClick={handleAdd} className="w-full py-3.5 rounded-xl bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors shadow-menu-glow">
@@ -87,7 +87,7 @@ function ProductContent({ product, restaurantSlug }: { product: Product; restaur
             </button>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

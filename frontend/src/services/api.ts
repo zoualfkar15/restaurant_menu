@@ -80,18 +80,22 @@ export async function getRestaurant(slug: string) {
   return res.json();
 }
 
+const inflightMenu = new Map<string, Promise<unknown>>();
+
 export async function getMenu(slug: string) {
-  const res = await fetch(apiUrl(`/restaurants/${slug}/menu`));
-  if (!res.ok) return null;
-  return res.json();
+  const existing = inflightMenu.get(slug);
+  if (existing) return existing;
+
+  const promise = fetch(apiUrl(`/restaurants/${slug}/menu`))
+    .then((res) => (res.ok ? res.json() : null))
+    .finally(() => inflightMenu.delete(slug));
+
+  inflightMenu.set(slug, promise);
+  return promise;
 }
 
 export async function getProduct(restaurantSlug: string, productSlug: string) {
   const res = await fetch(apiUrl(`/restaurants/${restaurantSlug}/products/${productSlug}`));
   if (!res.ok) return null;
   return res.json();
-}
-
-export async function trackMenuView(slug: string) {
-  fetch(apiUrl(`/restaurants/${slug}/menu/view`), { method: 'POST' }).catch(() => {});
 }
