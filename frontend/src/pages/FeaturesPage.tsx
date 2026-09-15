@@ -1,41 +1,57 @@
 import { Link } from 'react-router-dom';
 import { useLocale } from '@/lib/locale';
-import SiteHeader from '@/components/SiteHeader';
+import { PageContainer, PageHero, SiteLayout } from '@/components/SiteLayout';
+import { primaryButtonClass, secondaryButtonClass } from '@/components/SiteForm';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-
-const featureKeys = [
-  { titleKey: 'features.qrMenu', descKey: 'features.qrMenuDesc' },
-  { titleKey: 'features.landing', descKey: 'features.landingDesc' },
-  { titleKey: 'features.categories', descKey: 'features.categoriesDesc' },
-  { titleKey: 'features.upToDate', descKey: 'features.upToDateDesc' },
-  { titleKey: 'features.mobileFirst', descKey: 'features.mobileFirstDesc' },
-  { titleKey: 'features.analytics', descKey: 'features.analyticsDesc' },
-];
+import { SITE_FEATURES } from '@/lib/siteFeatures';
+import { ArrowForwardIcon, PlateIcon, StarIcon } from '@/components/menu/icons';
 
 export default function FeaturesPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const isRtl = locale === 'ar';
   useDocumentTitle(`${t('nav.features')} | MenuQR`);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <SiteHeader active="features" />
-      <main className="flex-1 py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">{t('features.title')}</h1>
-          <p className="text-slate-600">{t('features.subtitle')}</p>
-        </div>
-        <div className="max-w-4xl mx-auto grid gap-8 sm:grid-cols-2">
-          {featureKeys.map((f) => (
-            <div key={f.titleKey} className="p-6 rounded-xl border border-slate-200 bg-white hover:shadow-menu-md transition-shadow">
-              <h2 className="text-lg font-semibold text-slate-900 mb-2">{t(f.titleKey)}</h2>
-              <p className="text-slate-600">{t(f.descKey)}</p>
-            </div>
+    <SiteLayout active="features">
+      <PageHero
+        eyebrow={
+          <>
+            <StarIcon size={16} />
+            {t('nav.features')}
+          </>
+        }
+        title={t('features.title')}
+        subtitle={t('features.subtitle')}
+      />
+
+      <PageContainer>
+        <ul className="grid gap-4 md:grid-cols-2">
+          {SITE_FEATURES.map(({ icon: Icon, titleKey, descKey }) => (
+            <li key={titleKey}>
+              <article className="menu-card-hover flex h-full gap-4 rounded-[22px] bg-menu-surface p-5 ring-1 ring-menu-border hover:bg-menu-surface-elevated hover:shadow-menu-md hover:ring-menu-border-strong">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+                  <Icon size={24} />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-base font-extrabold sm:text-lg">{t(titleKey)}</h2>
+                  <p className="mt-1.5 text-sm leading-relaxed text-menu-ink-muted sm:text-[15px]">{t(descKey)}</p>
+                </div>
+              </article>
+            </li>
           ))}
+        </ul>
+
+        <div className="mt-8 flex flex-col gap-3 border-t border-menu-border pt-8 sm:flex-row sm:justify-center">
+          <Link to="/register" className={primaryButtonClass}>
+            {t('features.startTrial')}
+            <ArrowForwardIcon size={20} rtl={isRtl} />
+          </Link>
+          <Link to="/restaurant/demo-cafe/menu" className={secondaryButtonClass}>
+            <PlateIcon size={20} className="text-primary-700" />
+            {t('nav.viewDemo')}
+          </Link>
         </div>
-        <div className="max-w-3xl mx-auto text-center mt-16">
-          <Link to="/register" className="inline-block bg-brand-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-brand-600">{t('features.startTrial')}</Link>
-        </div>
-      </main>
-    </div>
+      </PageContainer>
+    </SiteLayout>
   );
 }

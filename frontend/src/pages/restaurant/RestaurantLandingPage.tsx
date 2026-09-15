@@ -1,158 +1,370 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getRestaurant } from '@/services/api';
 import { LocaleProvider, useLocale } from '@/lib/locale';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import AppImage from '@/components/AppImage';
-import Spinner from '@/components/Spinner';
+import { useCart } from '@/hooks/useCart';
+import { AboutPageSkeleton } from '@/components/Skeleton';
+import RestaurantHero from '@/components/menu/RestaurantHero';
+import CartBar from '@/components/menu/CartBar';
+import CartDrawer from '@/components/menu/CartDrawer';
+import CartToast from '@/components/menu/CartToast';
+import InfoSheet from '@/components/menu/InfoSheet';
+import { getRestaurantWhatsApp } from '@/utils/whatsapp';
+import {
+  ArrowForwardIcon,
+  ClockIcon,
+  ExternalLinkIcon,
+  FacebookIcon,
+  InfoIcon,
+  InstagramIcon,
+  LinkIcon,
+  MapPinIcon,
+  PhoneIcon,
+  PlateIcon,
+  WhatsAppIcon,
+} from '@/components/menu/icons';
+import type { MenuRestaurant } from '@/types/menu';
+
+/** `GET /api/restaurants/:slug` — the menu restaurant shape plus landing-page extras. */
+type RestaurantDetails = Omit<MenuRestaurant, 'categories'> & {
+  openingHours?: Record<string, string> | null;
+  socialLinks?: Record<string, string> | null;
+};
 
 const OPENING_DAYS_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
-const dayToTranslationKey: Record<string, string> = {
-  monday: 'restaurant.dayMonday', tuesday: 'restaurant.dayTuesday', wednesday: 'restaurant.dayWednesday',
-  thursday: 'restaurant.dayThursday', friday: 'restaurant.dayFriday', saturday: 'restaurant.daySaturday', sunday: 'restaurant.daySunday',
+type Day = (typeof OPENING_DAYS_ORDER)[number];
+const DAY_LABEL_KEY: Record<Day, string> = {
+  monday: 'restaurant.dayMonday',
+  tuesday: 'restaurant.dayTuesday',
+  wednesday: 'restaurant.dayWednesday',
+  thursday: 'restaurant.dayThursday',
+  friday: 'restaurant.dayFriday',
+  saturday: 'restaurant.daySaturday',
+  sunday: 'restaurant.daySunday',
+};
+/** `Date#getDay()` → opening-hours key. */
+const JS_DAY_KEYS: Day[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+type IconComponent = ComponentType<{ size?: number; className?: string }>;
+const SOCIAL_ICONS: Record<string, IconComponent> = { facebook: FacebookIcon, instagram: InstagramIcon };
+const SOCIAL_LABELS: Record<string, string> = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  twitter: 'X (Twitter)',
+  x: 'X',
+  youtube: 'YouTube',
+  snapchat: 'Snapchat',
+  telegram: 'Telegram',
+  website: 'Website',
 };
 
-type Restaurant = {
-  slug: string; name: string; nameAr?: string | null; description?: string | null; descriptionAr?: string | null;
-  logo?: string | null; coverImage?: string | null; phone?: string | null; address?: string | null; addressAr?: string | null;
-  latitude?: unknown; longitude?: unknown; whatsapp?: string | null; openingHours?: Record<string, string> | null;
-  socialLinks?: Record<string, string> | null; defaultLocale?: string | null; localesEnabled?: string[] | null; currency?: string | null;
-};
+const focusRing = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2';
+const iconBadge = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-700';
+// Stacked icon-over-label tiles on phones; horizontal pills next to the CTA from `md` up.
+const quickAction = `flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-menu-surface px-2 py-3 text-xs font-bold text-menu-ink ring-1 ring-menu-border transition-colors hover:bg-primary-50 hover:text-primary-800 hover:ring-primary-200 active:scale-[0.98] md:h-16 md:flex-row md:gap-2 md:px-4 md:py-0 md:text-sm ${focusRing}`;
+const quickActionIcon = 'flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary-700 ring-1 ring-menu-border md:h-9 md:w-9';
+const contactRow = `flex items-center gap-3 rounded-2xl px-2 py-2.5 text-[15px] font-semibold text-menu-ink transition-colors hover:bg-menu-surface ${focusRing}`;
 
-function LandingContent({ restaurant: r }: { restaurant: Restaurant }) {
-  const { t, localize, locale, setLocale, enabledLocales } = useLocale();
-  const hours = (r.openingHours as Record<string, string>) || {};
-  const social = (r.socialLinks as Record<string, string>) || {};
-  const lat = r.latitude != null ? Number(r.latitude) : null;
-  const lng = r.longitude != null ? Number(r.longitude) : null;
-  const hasGeo = lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng);
+function InfoCard({ id, icon, title, children, className = '' }: { id: string; icon: ReactNode; title: string; children: ReactNode; className?: string }) {
+  return (
+    <section
+      aria-labelledby={`${id}-title`}
+      className={`rounded-[22px] bg-menu-surface-elevated p-4 shadow-menu-sm ring-1 ring-menu-border sm:p-5 ${className}`}
+    >
+      <div className="mb-3 flex items-center gap-2.5">
+        <span className={iconBadge}>{icon}</span>
+        <h2 id={`${id}-title`} className="text-base font-extrabold text-menu-ink sm:text-lg">
+          {title}
+        </h2>
+      </div>
+      {children}
+    </section>
+  );
+}
 
-  useDocumentTitle(`${localize(r.name, r.nameAr)} | MenuQR`);
+function AboutContent({ restaurant: r }: { restaurant: RestaurantDetails }) {
+  const { t, localize, locale } = useLocale();
+  const { openCart, closeCart, totalItems } = useCart(r.slug);
+  const navigate = useNavigate();
+  const [infoOpen, setInfoOpen] = useState(false);
+  const isRtl = locale === 'ar';
+  const menuPath = `/restaurant/${r.slug}/menu`;
+
+  const name = localize(r.name, r.nameAr);
+  const description = localize(r.description, r.descriptionAr);
+  const address = localize(r.address, r.addressAr);
+  const whatsapp = getRestaurantWhatsApp({ whatsapp: r.whatsapp });
+  const phoneHref = r.phone ? `tel:${r.phone.replace(/\s+/g, '')}` : null;
+
+  const lat = r.latitude != null ? Number(r.latitude) : NaN;
+  const lng = r.longitude != null ? Number(r.longitude) : NaN;
+  const hasGeo = !Number.isNaN(lat) && !Number.isNaN(lng);
+  const mapsHref = hasGeo
+    ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+    : address
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+      : null;
+  const embedSrc = hasGeo
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01}%2C${lat - 0.01}%2C${lng + 0.01}%2C${lat + 0.01}&layer=mapnik&marker=${lat}%2C${lng}`
+    : null;
+
+  const hours = r.openingHours ?? {};
+  const openingDays = OPENING_DAYS_ORDER.filter((day) => hours[day]);
+  const today = JS_DAY_KEYS[new Date().getDay()];
+  const social = Object.entries(r.socialLinks ?? {}).filter(([, url]) => typeof url === 'string' && url.trim() !== '');
+
+  const hasQuickActions = Boolean(phoneHref || whatsapp || mapsHref);
+  // The hero already shows the tagline (clamped to two lines); only repeat it in full when it is long.
+  const showAbout = Boolean(description && description.length > 100);
+  const hasBottomBar = totalItems > 0;
+
+  useDocumentTitle(`${t('public.aboutRestaurant')} | ${name}`);
+  const openInfo = useCallback(() => setInfoOpen(true), []);
+  const closeInfo = useCallback(() => setInfoOpen(false), []);
+  // Empty-cart "browse menu": close the (global) drawer first so the menu page doesn't open with it showing.
+  const browseMenu = useCallback(() => {
+    closeCart();
+    navigate(menuPath);
+  }, [closeCart, navigate, menuPath]);
 
   return (
-    <div className="min-h-screen bg-slate-50 page-enter">
-      <header className="relative">
-        {enabledLocales.length > 1 && (
-          <div className="absolute top-4 right-4 z-10 flex gap-0.5 rounded-full bg-white/20 backdrop-blur-sm p-1 ring-1 ring-white/30">
-            {enabledLocales.map((l) => (
-              <button key={l} type="button" onClick={() => setLocale(l)} className={`px-3 py-1.5 text-sm font-medium rounded-full transition-all ${locale === l ? 'bg-white text-slate-900 shadow-sm' : 'text-white/90 hover:bg-white/20'}`}>
-                {l === 'ar' ? 'ع' : 'En'}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="absolute inset-0 h-64 sm:h-80 bg-gradient-to-b from-slate-800 to-slate-900">
-          {r.coverImage ? (
-            <>
-              <AppImage src={r.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" loading="eager" />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
-            </>
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900" />
-          )}
-        </div>
-        <div className="relative max-w-4xl mx-auto px-4 pt-8 pb-24 sm:pb-28 text-center">
-          {r.logo && (
-            <div className="inline-flex rounded-2xl overflow-hidden border-4 border-white/20 shadow-xl mb-6 w-24 h-24 sm:w-28 sm:h-28 bg-white">
-              <AppImage src={r.logo} alt="" className="w-full h-full object-cover" width={112} height={112} />
-            </div>
-          )}
-          <h1 className="text-3xl sm:text-4xl font-bold text-white drop-shadow-lg">{localize(r.name, r.nameAr)}</h1>
-          {(r.description || r.descriptionAr) && (
-            <p className="mt-3 text-slate-200 text-lg max-w-xl mx-auto drop-shadow">{localize(r.description, r.descriptionAr)}</p>
-          )}
-        </div>
-      </header>
+    <div
+      dir={isRtl ? 'rtl' : 'ltr'}
+      className={`menu-bg font-menu min-h-screen overflow-x-clip text-menu-ink antialiased page-enter ${hasBottomBar ? 'pb-44 lg:pb-12' : 'pb-10 lg:pb-12'}`}
+    >
+      <RestaurantHero restaurant={r} onOpenInfo={openInfo} onOpenCart={openCart} showCartOnDesktop />
 
-      <div className="max-w-2xl mx-auto px-4 -mt-12 relative z-10 pb-12">
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 mb-6">
-          <Link to={`/restaurant/${r.slug}/menu`} className="block w-full bg-brand-500 hover:bg-brand-600 text-white text-center py-4 rounded-xl font-semibold text-lg transition-colors shadow-menu-glow">
-            {t('public.viewMenu')}
-          </Link>
-          <div className="flex flex-wrap gap-3 justify-center mt-4">
-            {r.phone && <a href={`tel:${r.phone}`} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50">📞 {t('public.call')}</a>}
-            {(r.address || hasGeo) && (
-              <a href={hasGeo ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.address || '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50">📍 {t('public.map')}</a>
+      <div className="relative z-10 mx-3 -mt-7 sm:mx-4 lg:mx-auto lg:-mt-10 lg:max-w-[1100px] lg:px-8">
+        <main className="rounded-[28px] bg-menu-surface-elevated px-4 pb-6 pt-5 shadow-menu-lg ring-1 ring-menu-border/80 sm:px-6 lg:rounded-[32px] lg:px-8 lg:pb-10 lg:pt-8">
+          {/* Primary action + quick contact actions */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-stretch">
+            <Link
+              to={menuPath}
+              className={`group flex h-16 items-center gap-3 rounded-2xl bg-primary-600 px-4 text-white shadow-primary-glow transition-all hover:bg-primary-700 active:scale-[0.99] md:min-w-0 md:flex-1 ${focusRing}`}
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15">
+                <PlateIcon size={22} />
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col text-start">
+                <span className="text-base font-extrabold leading-tight">{t('public.viewMenu')}</span>
+                {whatsapp && <span className="truncate text-xs font-medium text-white/80">{t('public.viewMenuHint')}</span>}
+              </span>
+              <ArrowForwardIcon size={22} rtl={isRtl} className="shrink-0 opacity-80 transition-opacity group-hover:opacity-100" />
+            </Link>
+
+            {hasQuickActions && (
+              <div className="grid auto-cols-fr grid-flow-col gap-2 md:flex md:shrink-0">
+                {phoneHref && (
+                  <a href={phoneHref} className={quickAction}>
+                    <span className={quickActionIcon}>
+                      <PhoneIcon size={18} />
+                    </span>
+                    {t('public.call')}
+                  </a>
+                )}
+                {whatsapp && (
+                  <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className={quickAction}>
+                    <span className={quickActionIcon}>
+                      <WhatsAppIcon size={18} />
+                    </span>
+                    {t('public.whatsapp')}
+                  </a>
+                )}
+                {mapsHref && (
+                  <a href={mapsHref} target="_blank" rel="noopener noreferrer" className={quickAction}>
+                    <span className={quickActionIcon}>
+                      <MapPinIcon size={18} />
+                    </span>
+                    {t('public.map')}
+                  </a>
+                )}
+              </div>
             )}
-            {r.whatsapp && <a href={`https://wa.me/${r.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50">💬 WhatsApp</a>}
           </div>
-        </div>
 
-        <div className="grid sm:grid-cols-2 gap-4 mb-6">
-          {(r.address || r.addressAr) && (
-            <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{t('public.address')}</h2>
-              <p className="text-slate-800 font-medium">{localize(r.address, r.addressAr)}</p>
-            </div>
-          )}
-          {r.phone && (
-            <div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{t('public.phone')}</h2>
-              <a href={`tel:${r.phone}`} className="text-brand-600 font-medium hover:underline">{r.phone}</a>
-            </div>
-          )}
-        </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:mt-6">
+            {showAbout && (
+              <InfoCard id="about" icon={<InfoIcon size={20} />} title={t('public.aboutRestaurant')} className="md:col-span-2">
+                <p className="text-[15px] leading-relaxed text-menu-ink-secondary">
+                  <bdi>{description}</bdi>
+                </p>
+              </InfoCard>
+            )}
 
-        {Object.keys(hours).length > 0 && (
-          <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm mb-6">
-            <h2 className="text-slate-900 font-semibold mb-3">{t('public.openingHours')}</h2>
-            <ul className="space-y-2">
-              {OPENING_DAYS_ORDER.filter((day) => hours[day]).map((day) => (
-                <li key={day} className="flex justify-between text-slate-600">
-                  <span>{t(dayToTranslationKey[day])}</span>
-                  <span className="font-medium text-slate-800">{hours[day]}</span>
-                </li>
-              ))}
-            </ul>
+            {openingDays.length > 0 && (
+              <InfoCard id="hours" icon={<ClockIcon size={20} />} title={t('public.openingHours')}>
+                <ul className="-mx-1 space-y-0.5">
+                  {openingDays.map((day) => {
+                    const isToday = day === today;
+                    return (
+                      <li
+                        key={day}
+                        className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm ${
+                          isToday ? 'bg-primary-50 font-bold text-primary-900' : 'text-menu-ink-secondary'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          {t(DAY_LABEL_KEY[day])}
+                          {isToday && (
+                            <span className="rounded-full bg-primary-600 px-2 py-0.5 text-[11px] font-extrabold text-white">{t('public.today')}</span>
+                          )}
+                        </span>
+                        <span className={`tabular-nums ${isToday ? '' : 'font-semibold text-menu-ink'}`} dir="ltr">
+                          {hours[day]}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </InfoCard>
+            )}
+
+            {(embedSrc || address) && (
+              <InfoCard id="location" icon={<MapPinIcon size={20} />} title={t('public.location')}>
+                {embedSrc && (
+                  <div className="overflow-hidden rounded-2xl bg-menu-surface-muted ring-1 ring-menu-border">
+                    <iframe
+                      title={t('public.location')}
+                      src={embedSrc}
+                      className="block h-48 w-full border-0 sm:h-56"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+                {address && (
+                  <p className={`text-[15px] font-semibold leading-relaxed text-menu-ink ${embedSrc ? 'mt-3' : ''}`}>
+                    <bdi>{address}</bdi>
+                  </p>
+                )}
+                {mapsHref && (
+                  <a
+                    href={mapsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`mt-3 inline-flex h-10 items-center gap-2 rounded-xl bg-primary-50 px-4 text-sm font-bold text-primary-700 ring-1 ring-primary-200 transition-colors hover:bg-primary-100 ${focusRing}`}
+                  >
+                    <ExternalLinkIcon size={16} />
+                    {t('public.openInMaps')}
+                  </a>
+                )}
+              </InfoCard>
+            )}
+
+            {(phoneHref || whatsapp) && (
+              <InfoCard id="contact" icon={<PhoneIcon size={20} />} title={t('public.contactUs')}>
+                <div className="-mx-1 space-y-0.5">
+                  {phoneHref && r.phone && (
+                    <a href={phoneHref} className={contactRow}>
+                      <span className={iconBadge}>
+                        <PhoneIcon size={18} />
+                      </span>
+                      <span className="flex min-w-0 flex-col">
+                        <span className="text-xs font-semibold text-menu-ink-muted">{t('public.phone')}</span>
+                        <span className="truncate tabular-nums" dir="ltr">
+                          {r.phone}
+                        </span>
+                      </span>
+                    </a>
+                  )}
+                  {whatsapp && (
+                    <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className={contactRow}>
+                      <span className={iconBadge}>
+                        <WhatsAppIcon size={18} />
+                      </span>
+                      <span className="flex min-w-0 flex-col">
+                        <span className="text-xs font-semibold text-menu-ink-muted">{t('public.whatsapp')}</span>
+                        <span className="truncate tabular-nums" dir="ltr">
+                          {`+${whatsapp}`}
+                        </span>
+                      </span>
+                    </a>
+                  )}
+                </div>
+              </InfoCard>
+            )}
+
+            {social.length > 0 && (
+              <InfoCard id="social" icon={<LinkIcon size={20} />} title={t('public.followUs')}>
+                <div className="flex flex-wrap gap-2">
+                  {social.map(([network, url]) => {
+                    const key = network.toLowerCase();
+                    const Icon = SOCIAL_ICONS[key] ?? LinkIcon;
+                    const label = SOCIAL_LABELS[key] ?? network.charAt(0).toUpperCase() + network.slice(1);
+                    return (
+                      <a
+                        key={network}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex h-11 items-center gap-2 rounded-full bg-menu-surface px-4 text-sm font-bold text-menu-ink ring-1 ring-menu-border transition-colors hover:bg-primary-50 hover:text-primary-800 hover:ring-primary-200 ${focusRing}`}
+                      >
+                        <Icon size={18} className="text-primary-700" />
+                        {label}
+                      </a>
+                    );
+                  })}
+                </div>
+              </InfoCard>
+            )}
           </div>
-        )}
-
-        {hasGeo && (
-          <div className="bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm mb-6">
-            <div className="p-4 border-b border-slate-100"><h2 className="text-slate-900 font-semibold">{t('public.location')}</h2></div>
-            <div className="h-56">
-              <iframe title="Map" width="100%" height="100%" style={{ border: 0 }} src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(r.longitude) - 0.01}%2C${Number(r.latitude) - 0.01}%2C${Number(r.longitude) + 0.01}%2C${Number(r.latitude) + 0.01}&layer=mapnik&marker=${r.latitude}%2C${r.longitude}`} allowFullScreen />
-            </div>
-          </div>
-        )}
-
-        {Object.keys(social).length > 0 && (
-          <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-            <h2 className="text-slate-900 font-semibold mb-3">{t('public.followUs')}</h2>
-            <div className="flex flex-wrap gap-3">
-              {Object.entries(social).map(([name, url]) => (
-                <a key={name} href={url} target="_blank" rel="noopener noreferrer" className="capitalize text-brand-500 font-medium hover:underline">{name}</a>
-              ))}
-            </div>
-          </div>
-        )}
+        </main>
       </div>
+
+      <CartBar restaurant={r} />
+      <CartDrawer restaurant={r} onBrowse={browseMenu} />
+      <CartToast hasBottomBar={hasBottomBar} />
+      <InfoSheet open={infoOpen} onClose={closeInfo} restaurant={r} currentPage="about" />
     </div>
   );
 }
 
 export default function RestaurantLandingPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [restaurant, setRestaurant] = useState<RestaurantDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!slug) return;
-    getRestaurant(slug).then((data) => setRestaurant(data)).finally(() => setLoading(false));
+    let cancelled = false;
+    setLoading(true);
+    getRestaurant(slug)
+      .then((data) => {
+        if (!cancelled) setRestaurant(data as RestaurantDetails | null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Spinner className="w-8 h-8 text-brand-500" /></div>;
-  if (!restaurant) return <div className="min-h-screen flex items-center justify-center"><p>Restaurant not found</p></div>;
+  if (loading) return <AboutPageSkeleton />;
+  if (!restaurant) {
+    return (
+      <div className="menu-bg font-menu flex min-h-screen items-center justify-center px-6 text-center">
+        <p className="text-menu-ink-muted">
+          <span className="block text-lg font-bold text-menu-ink">المطعم غير موجود</span>
+          <span className="block text-sm">Restaurant not found</span>
+        </p>
+      </div>
+    );
+  }
 
   const defaultLocale = (restaurant.defaultLocale === 'en' || restaurant.defaultLocale === 'ar' ? restaurant.defaultLocale : 'ar') as 'en' | 'ar';
-  const enabledLocales = Array.isArray(restaurant.localesEnabled) && restaurant.localesEnabled.length > 0
-    ? (restaurant.localesEnabled.filter((l) => l === 'en' || l === 'ar') as ('en' | 'ar')[])
-    : (['ar', 'en'] as ('en' | 'ar')[]);
+  const enabledLocales =
+    Array.isArray(restaurant.localesEnabled) && restaurant.localesEnabled.length > 0
+      ? (restaurant.localesEnabled.filter((l) => l === 'en' || l === 'ar') as ('en' | 'ar')[])
+      : (['ar', 'en'] as ('en' | 'ar')[]);
   const currency = restaurant.currency === 'TRY' ? 'TRY' : restaurant.currency === 'SYP' ? 'SYP' : 'USD';
 
   return (
     <LocaleProvider defaultLocale={defaultLocale} enabledLocales={enabledLocales} currency={currency}>
-      <LandingContent restaurant={restaurant} />
+      <AboutContent restaurant={restaurant} />
     </LocaleProvider>
   );
 }

@@ -6,8 +6,11 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        // Arabic-friendly stack used by the public menu / ordering experience.
+        menu: ['Cairo', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // SaaS marketing / dashboard brand (unchanged).
         brand: {
           50: '#fef7ee',
           100: '#fdedd6',
@@ -21,24 +24,44 @@ const config: Config = {
           900: '#772f14',
           950: '#401508',
         },
+        // Restaurant menu primary action color (fresh green).
+        primary: {
+          50: '#eaf7f2',
+          100: '#cdeadf',
+          200: '#9dd6c1',
+          300: '#66bd9e',
+          400: '#33a37e',
+          500: '#0f9068',
+          600: '#087f5b',
+          700: '#07684b',
+          800: '#06523c',
+          900: '#053d2d',
+          950: '#02261c',
+        },
+        // Neutral surfaces & text for the menu experience.
         menu: {
-          surface: '#fdfcfa',
+          surface: '#f7f7f5',
           'surface-elevated': '#ffffff',
-          'surface-muted': '#f7f5f2',
-          ink: '#1c1917',
-          'ink-secondary': '#57534e',
-          'ink-muted': '#78716c',
-          border: '#e7e5e4',
-          'border-strong': '#d6d3d1',
-          accent: '#c2410c',
-          'accent-soft': '#fff7ed',
+          'surface-muted': '#f1f1ee',
+          ink: '#202124',
+          'ink-secondary': '#5f6368',
+          'ink-muted': '#777777',
+          border: '#e8e8e4',
+          'border-strong': '#d6d6d0',
+          accent: '#d97706',
+          'accent-soft': '#fff7e6',
         },
       },
       boxShadow: {
-        'menu-sm': '0 1px 2px 0 rgb(41 37 36 / 0.04), 0 1px 3px -1px rgb(41 37 36 / 0.04)',
-        'menu-md': '0 4px 12px -2px rgb(41 37 36 / 0.06), 0 2px 6px -2px rgb(41 37 36 / 0.04)',
-        'menu-lg': '0 12px 32px -8px rgb(41 37 36 / 0.1), 0 4px 12px -4px rgb(41 37 36 / 0.06)',
+        'menu-sm': '0 1px 2px 0 rgb(32 33 36 / 0.04), 0 1px 3px -1px rgb(32 33 36 / 0.05)',
+        'menu-md': '0 4px 14px -4px rgb(32 33 36 / 0.08), 0 2px 6px -2px rgb(32 33 36 / 0.04)',
+        'menu-lg': '0 16px 40px -12px rgb(32 33 36 / 0.16), 0 6px 16px -8px rgb(32 33 36 / 0.08)',
         'menu-glow': '0 0 0 1px rgb(237 118 26 / 0.15), 0 8px 24px -6px rgb(237 118 26 / 0.2)',
+        'primary-glow': '0 8px 24px -8px rgb(8 127 91 / 0.45)',
+        'menu-top': '0 -8px 30px -12px rgb(32 33 36 / 0.18)',
+      },
+      screens: {
+        xs: '400px',
       },
     },
   },

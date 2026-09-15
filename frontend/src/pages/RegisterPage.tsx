@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useLocale } from '@/lib/locale';
 import { register } from '@/services/api';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import AuthLayout from '@/components/AuthLayout';
+import { FormError, primaryButtonClass, TextField } from '@/components/SiteForm';
+import Spinner from '@/components/Spinner';
 
 export default function RegisterPage() {
   const { t } = useLocale();
@@ -11,50 +14,73 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   useDocumentTitle(`${t('auth.signUp')} | MenuQR`);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     setError('');
-    const { res, data } = await register(name, email, password);
-    if (!res.ok) {
-      setError(data.message || t('auth.registerFailed'));
-      return;
+    setSubmitting(true);
+    try {
+      const { res, data } = await register(name, email, password);
+      if (!res.ok) {
+        setError(data.message || t('auth.registerFailed'));
+        return;
+      }
+      if (data.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+        if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+      }
+      navigate('/dashboard');
+    } catch {
+      setError(t('auth.registerFailed'));
+    } finally {
+      setSubmitting(false);
     }
-    if (data.accessToken) {
-      localStorage.setItem('accessToken', data.accessToken);
-      if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
-    }
-    navigate('/dashboard');
   }
 
-  const inputClass = 'w-full border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 focus:ring-2 focus:ring-brand-500';
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-slate-50">
-      <div className="w-full max-w-sm p-6 sm:p-8 rounded-2xl bg-white shadow-lg border border-slate-200">
-        <Link to="/" className="block text-center text-xl font-bold text-slate-900 mb-8">MenuQR</Link>
-        <h1 className="text-2xl font-bold text-slate-900 mb-6">{t('auth.createAccount')}</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
-          <div>
-            <label className="block text-sm font-medium text-slate-800 mb-1">{t('auth.name')}</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-800 mb-1">{t('auth.email')}</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} required />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-800 mb-1">{t('auth.password')}</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} required minLength={8} />
-          </div>
-          <button type="submit" className="w-full bg-brand-500 text-white py-2.5 rounded-lg font-medium hover:bg-brand-600">{t('auth.signUp')}</button>
-        </form>
-        <p className="mt-6 text-center text-sm text-slate-600">
-          {t('auth.hasAccount')} <Link to="/login" className="text-brand-500 font-medium hover:underline">{t('auth.logIn')}</Link>
-        </p>
-      </div>
-    </div>
+    <AuthLayout
+      title={t('auth.createAccount')}
+      subtitle={t('auth.registerSubtitle')}
+      footer={
+        <>
+          {t('auth.hasAccount')}{' '}
+          <Link to="/login" className="font-bold text-primary-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded">
+            {t('auth.logIn')}
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <FormError>{error}</FormError>
+        <TextField id="register-name" label={t('auth.name')} type="text" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} required />
+        <TextField
+          id="register-email"
+          label={t('auth.email')}
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <TextField
+          id="register-password"
+          label={t('auth.password')}
+          type="password"
+          autoComplete="new-password"
+          hint={t('auth.passwordHint')}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={8}
+        />
+        <button type="submit" className={`${primaryButtonClass} mt-2 w-full`} disabled={submitting}>
+          {submitting && <Spinner className="h-4 w-4" />}
+          {submitting ? t('auth.creating') : t('auth.signUp')}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }

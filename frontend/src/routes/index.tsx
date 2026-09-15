@@ -3,7 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { LocaleProvider } from '@/lib/locale';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import AdminLayout from '@/layouts/AdminLayout';
-import { MenuPageSkeleton } from '@/components/Skeleton';
+import { AboutPageSkeleton, MenuPageSkeleton } from '@/components/Skeleton';
 import Spinner from '@/components/Spinner';
 
 const HomePage = lazy(() => import('@/pages/HomePage'));
@@ -73,7 +73,14 @@ export const router = createBrowserRouter([
       { path: 'subscriptions', element: <PageLoader><AdminSubscriptionsPage /></PageLoader> },
     ],
   },
-  { path: '/restaurant/:slug', element: <PageLoader><RestaurantLandingPage /></PageLoader> },
+  {
+    path: '/restaurant/:slug',
+    element: (
+      <Suspense fallback={<AboutPageSkeleton />}>
+        <RestaurantLandingPage />
+      </Suspense>
+    ),
+  },
   {
     path: '/restaurant/:slug/menu',
     element: (

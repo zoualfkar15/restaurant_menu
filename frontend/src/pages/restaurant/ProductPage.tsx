@@ -1,93 +1,191 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getProduct } from '@/services/api';
 import { LocaleProvider, useLocale } from '@/lib/locale';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-// import { useCartStore } from '@/store/cartStore';
+import { useCart } from '@/hooks/useCart';
 import AppImage from '@/components/AppImage';
 import Spinner from '@/components/Spinner';
+import QuantityControl from '@/components/menu/QuantityControl';
+import CartDrawer from '@/components/menu/CartDrawer';
+import CartToast from '@/components/menu/CartToast';
+import { ArrowBackIcon, CartIcon, PlateIcon, PlusIcon, StarIcon } from '@/components/menu/icons';
+import type { MenuRestaurant } from '@/types/menu';
 
 type Product = {
-  name: string; nameAr?: string | null; slug: string; description?: string | null; descriptionAr?: string | null;
-  price: string | number; image: string | null; isPopular?: boolean; ingredients?: string | null;
-  calories?: number | null; allergens?: string | null; id?: string;
-  restaurant?: { slug: string; name?: string; nameAr?: string | null; defaultLocale?: string | null; localesEnabled?: string[] | null; currency?: string | null } | null;
+  id?: string;
+  name: string;
+  nameAr?: string | null;
+  slug: string;
+  description?: string | null;
+  descriptionAr?: string | null;
+  price: string | number;
+  image: string | null;
+  isPopular?: boolean;
+  ingredients?: string | null;
+  calories?: number | null;
+  allergens?: string | null;
+  restaurant?: Partial<Omit<MenuRestaurant, 'categories'>> | null;
   category?: { name?: string; nameAr?: string | null } | null;
 };
 
+const focusRing = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2';
+
 function ProductContent({ product, restaurantSlug }: { product: Product; restaurantSlug: string }) {
   const { formatPrice, localize, t, locale } = useLocale();
-  // const addItem = useCartStore((s) => s.addItem);
-  // const setOpen = useCartStore((s) => s.setOpen);
+  const { addItem, increaseQuantity, decreaseQuantity, getQuantity, totalItems, openCart } = useCart(restaurantSlug);
   const isRtl = locale === 'ar';
-  const restaurant = product.restaurant || { slug: restaurantSlug };
+  const restaurant = {
+    slug: restaurantSlug,
+    name: product.restaurant?.name ?? '',
+    nameAr: product.restaurant?.nameAr,
+    whatsapp: product.restaurant?.whatsapp,
+    phone: product.restaurant?.phone,
+  };
 
-  useDocumentTitle(`${localize(product.name, product.nameAr)} | MenuQR`);
+  const name = localize(product.name, product.nameAr);
+  const description = localize(product.description, product.descriptionAr);
+  const price = Number(product.price);
+  const quantity = product.id ? getQuantity(product.id) : 0;
 
-  // const handleAdd = () => {
-  //   if (!product.id) return;
-  //   addItem(restaurantSlug, {
-  //     productId: product.id,
-  //     slug: product.slug,
-  //     name: product.name,
-  //     nameAr: product.nameAr,
-  //     price: Number(product.price),
-  //     image: product.image,
-  //   });
-  //   setOpen(true);
-  // };
+  useDocumentTitle(`${name} | ${localize(restaurant.name, restaurant.nameAr) || 'MenuQR'}`);
+
+  const handleAdd = useCallback(() => {
+    if (!product.id) return;
+    addItem({ id: product.id, slug: product.slug, name: product.name, nameAr: product.nameAr, price, image: product.image });
+  }, [addItem, product, price]);
 
   return (
-    <div className="min-h-screen bg-slate-50 page-enter" dir={isRtl ? 'rtl' : 'ltr'}>
-      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-100 px-4 py-3">
-        <Link to={`/restaurant/${restaurant.slug}/menu`} className="text-slate-600 text-sm inline-flex items-center gap-1 hover:text-brand-500 transition-colors">
-          <span aria-hidden>{isRtl ? '→' : '←'}</span> {t('public.backToMenu')}
-        </Link>
+    <div className="menu-bg font-menu min-h-screen pb-32 text-menu-ink antialiased page-enter" dir={isRtl ? 'rtl' : 'ltr'}>
+      <header className="sticky top-0 z-20 border-b border-menu-border bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-3 sm:px-4">
+          <Link
+            to={`/restaurant/${restaurantSlug}/menu`}
+            className={`tap-target inline-flex items-center gap-1.5 rounded-full px-3 text-sm font-bold text-menu-ink-secondary transition-colors hover:bg-menu-surface-muted hover:text-menu-ink ${focusRing}`}
+          >
+            <ArrowBackIcon size={20} rtl={isRtl} />
+            {t('public.backToMenuLink')}
+          </Link>
+          <button
+            type="button"
+            onClick={openCart}
+            className={`tap-target relative inline-flex items-center justify-center rounded-full text-menu-ink-secondary transition-colors hover:bg-menu-surface-muted hover:text-menu-ink ${focusRing}`}
+            aria-label={`${t('cart.viewCart')}${totalItems > 0 ? ` (${totalItems})` : ''}`}
+          >
+            <CartIcon size={22} />
+            {totalItems > 0 && (
+              <span
+                key={totalItems}
+                className="animate-pop absolute -end-0.5 top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-menu-accent px-1 text-[11px] font-extrabold text-white ring-2 ring-white"
+                aria-hidden
+              >
+                {totalItems}
+              </span>
+            )}
+          </button>
+        </div>
       </header>
-      <main className="max-w-2xl mx-auto px-4 py-6 pb-24">
-        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-menu-md animate-fade-in">
-          <div className="aspect-[4/3] bg-slate-100 relative">
+
+      <main className="mx-auto max-w-3xl px-3 pt-4 sm:px-4 sm:pt-6">
+        <article className="overflow-hidden rounded-[28px] bg-white shadow-menu-lg ring-1 ring-menu-border/80 animate-fade-in md:grid md:grid-cols-2">
+          <div className="relative aspect-[4/3] bg-menu-surface-muted md:aspect-auto md:min-h-[360px]">
             {product.image ? (
-              <AppImage src={product.image} alt={localize(product.name, product.nameAr)} className="absolute inset-0 w-full h-full object-cover" loading="eager" />
+              <AppImage src={product.image} alt={name} className="absolute inset-0 h-full w-full object-cover" loading="eager" />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-6xl">🍽</div>
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-menu-surface-muted to-primary-50 text-primary-300">
+                <PlateIcon size={72} />
+              </div>
             )}
             {product.isPopular && (
-              <span className="absolute top-3 right-3 bg-brand-500 text-white text-sm px-3 py-1 rounded-full font-medium">{t('public.popular')}</span>
+              <span className="absolute start-4 top-4 inline-flex items-center gap-1 rounded-full bg-menu-accent px-3 py-1 text-xs font-extrabold text-white shadow-menu-md">
+                <StarIcon size={12} />
+                {t('public.popular')}
+              </span>
             )}
           </div>
-          <div className="p-6">
-            {product.category && <p className="text-sm text-slate-500 mb-1">{localize(product.category.name, product.category.nameAr)}</p>}
-            <h1 className="text-2xl font-bold text-slate-900">{localize(product.name, product.nameAr)}</h1>
-            <p className="text-2xl text-brand-600 font-bold mt-2 tabular-nums">{formatPrice(Number(product.price))}</p>
-            {(product.description || product.descriptionAr) && (
-              <p className="text-slate-600 mt-4 leading-relaxed">{localize(product.description, product.descriptionAr)}</p>
+
+          <div className="p-5 sm:p-6 md:flex md:flex-col">
+            {product.category && (
+              <p className="text-xs font-bold uppercase tracking-wide text-primary-700">{localize(product.category.name, product.category.nameAr)}</p>
             )}
-            {product.ingredients && (
-              <div className="mt-4 pt-4 border-t border-slate-100">
-                <h2 className="text-sm font-semibold text-slate-700">{t('public.ingredients')}</h2>
-                <p className="text-slate-600 text-sm mt-1">{product.ingredients}</p>
-              </div>
+            <h1 className="mt-1 text-balance break-words text-2xl font-extrabold leading-tight text-menu-ink sm:text-3xl">
+              <bdi>{name}</bdi>
+            </h1>
+            <p className="mt-2 text-2xl font-extrabold tabular-nums text-menu-ink">{formatPrice(price)}</p>
+            {description && (
+              <p className="mt-4 leading-relaxed text-menu-ink-secondary">
+                <bdi>{description}</bdi>
+              </p>
             )}
-            {product.calories != null && <p className="text-slate-500 text-sm mt-2">{t('public.calories')}: {product.calories} kcal</p>}
-            {product.allergens && (
-              <div className="mt-2">
-                <h2 className="text-sm font-semibold text-slate-700">{t('public.allergens')}</h2>
-                <p className="text-slate-600 text-sm">{product.allergens}</p>
-              </div>
+
+            {(product.ingredients || product.calories != null || product.allergens) && (
+              <dl className="mt-5 space-y-3 border-t border-menu-border pt-5 text-sm">
+                {product.ingredients && (
+                  <div>
+                    <dt className="font-bold text-menu-ink">{t('public.ingredients')}</dt>
+                    <dd className="mt-0.5 text-menu-ink-secondary">{product.ingredients}</dd>
+                  </div>
+                )}
+                {product.calories != null && (
+                  <div className="flex items-center gap-2">
+                    <dt className="font-bold text-menu-ink">{t('public.calories')}:</dt>
+                    <dd className="text-menu-ink-secondary">{product.calories} kcal</dd>
+                  </div>
+                )}
+                {product.allergens && (
+                  <div>
+                    <dt className="font-bold text-menu-ink">{t('public.allergens')}</dt>
+                    <dd className="mt-0.5 text-menu-ink-secondary">{product.allergens}</dd>
+                  </div>
+                )}
+              </dl>
             )}
           </div>
-        </div>
+        </article>
       </main>
-      {/* {product.id && (
-        <div className="fixed bottom-0 inset-x-0 p-4 bg-white/95 backdrop-blur border-t border-slate-100">
-          <div className="max-w-2xl mx-auto">
-            <button type="button" onClick={handleAdd} className="w-full py-3.5 rounded-xl bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors shadow-menu-glow">
-              + {t('public.addToCart')} · {formatPrice(Number(product.price))}
-            </button>
+
+      {product.id && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30">
+          <div className="safe-bottom mx-auto w-full max-w-3xl px-3 pb-3 sm:px-4">
+            <div className="pointer-events-auto animate-bar-in flex items-center gap-3 rounded-[22px] bg-white/85 p-2 shadow-menu-top ring-1 ring-menu-border backdrop-blur-xl">
+              {quantity > 0 ? (
+                <>
+                  <QuantityControl
+                    quantity={quantity}
+                    onAdd={handleAdd}
+                    onIncrease={() => increaseQuantity(product.id!)}
+                    onDecrease={() => decreaseQuantity(product.id!)}
+                    label={name}
+                  />
+                  <button
+                    type="button"
+                    onClick={openCart}
+                    className={`flex h-12 flex-1 items-center justify-between rounded-2xl bg-primary-900 px-4 text-white transition-colors hover:bg-primary-800 ${focusRing}`}
+                  >
+                    <span className="text-[15px] font-bold">{t('cart.viewCart')}</span>
+                    <span className="text-base font-extrabold tabular-nums">{formatPrice(Math.round(price * quantity * 100) / 100)}</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAdd}
+                  className={`flex h-12 w-full items-center justify-between rounded-2xl bg-primary-600 px-4 text-white shadow-primary-glow transition-all hover:bg-primary-700 active:scale-[0.99] ${focusRing}`}
+                >
+                  <span className="inline-flex items-center gap-2 text-[15px] font-bold">
+                    <PlusIcon size={20} />
+                    {t('cart.add')}
+                  </span>
+                  <span className="text-base font-extrabold tabular-nums">{formatPrice(price)}</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      )} */}
+      )}
+
+      <CartDrawer restaurant={restaurant} />
+      <CartToast hasBottomBar />
     </div>
   );
 }
@@ -99,17 +197,44 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (!slug || !productSlug) return;
-    getProduct(slug, productSlug).then((data) => setProduct(data)).finally(() => setLoading(false));
+    let cancelled = false;
+    setLoading(true);
+    getProduct(slug, productSlug)
+      .then((data) => {
+        if (!cancelled) setProduct(data);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [slug, productSlug]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Spinner className="w-8 h-8 text-brand-500" /></div>;
-  if (!product || !slug) return <div className="min-h-screen flex items-center justify-center"><p>{'Product not found'}</p></div>;
+  if (loading) {
+    return (
+      <div className="menu-bg flex min-h-screen items-center justify-center">
+        <Spinner className="h-8 w-8 text-primary-600" />
+      </div>
+    );
+  }
+  if (!product || !slug) {
+    return (
+      <div className="menu-bg font-menu flex min-h-screen items-center justify-center px-6 text-center">
+        <p className="text-menu-ink-muted">
+          <span className="block text-lg font-bold text-menu-ink">المنتج غير موجود</span>
+          <span className="block text-sm">Product not found</span>
+        </p>
+      </div>
+    );
+  }
 
   const rest = product.restaurant;
   const defaultLocale = (rest?.defaultLocale === 'en' || rest?.defaultLocale === 'ar' ? rest.defaultLocale : 'ar') as 'en' | 'ar';
-  const enabledLocales = Array.isArray(rest?.localesEnabled) && rest.localesEnabled.length > 0
-    ? (rest.localesEnabled.filter((l) => l === 'en' || l === 'ar') as ('en' | 'ar')[])
-    : (['ar', 'en'] as ('en' | 'ar')[]);
+  const enabledLocales =
+    Array.isArray(rest?.localesEnabled) && rest.localesEnabled.length > 0
+      ? (rest.localesEnabled.filter((l) => l === 'en' || l === 'ar') as ('en' | 'ar')[])
+      : (['ar', 'en'] as ('en' | 'ar')[]);
   const currency = rest?.currency === 'TRY' ? 'TRY' : rest?.currency === 'SYP' ? 'SYP' : 'USD';
 
   return (
