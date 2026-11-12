@@ -26,8 +26,11 @@ let RestaurantsController = class RestaurantsController {
     async getProduct(slug, productSlug) {
         return this.products.findBySlug(slug, productSlug);
     }
+    async getCatalog(slug) {
+        return this.restaurants.getCatalogBySlug(slug);
+    }
     async getMenu(slug) {
-        return this.restaurants.getMenuBySlug(slug);
+        return this.restaurants.getCatalogBySlug(slug);
     }
     async recordMenuView(slug) {
         return this.analytics.recordMenuView(slug);
@@ -48,6 +51,13 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], RestaurantsController.prototype, "getProduct", null);
+__decorate([
+    (0, common_1.Get)(':slug/catalog'),
+    __param(0, (0, common_1.Param)('slug')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], RestaurantsController.prototype, "getCatalog", null);
 __decorate([
     (0, common_1.Get)(':slug/menu'),
     __param(0, (0, common_1.Param)('slug')),

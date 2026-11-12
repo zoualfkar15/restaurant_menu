@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const throttler_1 = require("@nestjs/throttler");
 const prisma_module_1 = require("./prisma/prisma.module");
+const redis_module_1 = require("./redis/redis.module");
 const auth_module_1 = require("./auth/auth.module");
 const restaurants_module_1 = require("./restaurants/restaurants.module");
 const categories_module_1 = require("./categories/categories.module");
@@ -33,6 +34,7 @@ exports.AppModule = AppModule = __decorate([
                 { name: 'long', ttl: 3600000, limit: 500 },
             ]),
             prisma_module_1.PrismaModule,
+            redis_module_1.RedisModule,
             auth_module_1.AuthModule,
             restaurants_module_1.RestaurantsModule,
             categories_module_1.CategoriesModule,

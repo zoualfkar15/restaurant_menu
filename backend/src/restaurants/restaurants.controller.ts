@@ -19,9 +19,14 @@ export class RestaurantsController {
     return this.products.findBySlug(slug, productSlug);
   }
 
+  @Get(':slug/catalog')
+  async getCatalog(@Param('slug') slug: string) {
+    return this.restaurants.getCatalogBySlug(slug);
+  }
+
   @Get(':slug/menu')
   async getMenu(@Param('slug') slug: string) {
-    return this.restaurants.getMenuBySlug(slug);
+    return this.restaurants.getCatalogBySlug(slug);
   }
 
   @Post(':slug/menu/view')

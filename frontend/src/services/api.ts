@@ -74,24 +74,27 @@ export async function register(name: string, email: string, password: string) {
   return { res, data: await res.json().catch(() => ({})) };
 }
 
-export async function getRestaurant(slug: string) {
-  const res = await fetch(apiUrl(`/restaurants/${slug}`));
-  if (!res.ok) return null;
-  return res.json();
-}
+const inflightCatalog = new Map<string, Promise<unknown>>();
 
-const inflightMenu = new Map<string, Promise<unknown>>();
-
-export async function getMenu(slug: string) {
-  const existing = inflightMenu.get(slug);
+/** Restaurant + categories + products from the Redis-backed catalog endpoint. */
+export async function getCatalog(slug: string) {
+  const existing = inflightCatalog.get(slug);
   if (existing) return existing;
 
-  const promise = fetch(apiUrl(`/restaurants/${slug}/menu`))
+  const promise = fetch(apiUrl(`/restaurants/${slug}/catalog`))
     .then((res) => (res.ok ? res.json() : null))
-    .finally(() => inflightMenu.delete(slug));
+    .finally(() => inflightCatalog.delete(slug));
 
-  inflightMenu.set(slug, promise);
+  inflightCatalog.set(slug, promise);
   return promise;
+}
+
+export async function getRestaurant(slug: string) {
+  return getCatalog(slug);
+}
+
+export async function getMenu(slug: string) {
+  return getCatalog(slug);
 }
 
 export async function getProduct(restaurantSlug: string, productSlug: string) {

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
+import { RedisModule } from './redis/redis.module';
 import { AuthModule } from './auth/auth.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -21,6 +22,7 @@ import { AdminModule } from './admin/admin.module';
       { name: 'long', ttl: 3600000, limit: 500 },
     ]),
     PrismaModule,
+    RedisModule,
     AuthModule,
     RestaurantsModule,
     CategoriesModule,

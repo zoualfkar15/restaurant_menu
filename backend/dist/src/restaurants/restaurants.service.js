@@ -12,28 +12,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RestaurantsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const redis_service_1 = require("../redis/redis.service");
+const catalogInclude = {
+    categories: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+            products: {
+                where: { isAvailable: true },
+                orderBy: { sortOrder: 'asc' },
+            },
+        },
+    },
+};
 let RestaurantsService = class RestaurantsService {
-    constructor(prisma) {
+    constructor(prisma, redis) {
         this.prisma = prisma;
+        this.redis = redis;
     }
     async findBySlug(slug) {
-        const restaurant = await this.prisma.restaurant.findFirst({
-            where: { slug, isActive: true },
-            include: {
-                categories: {
-                    orderBy: { sortOrder: 'asc' },
-                    include: {
-                        products: {
-                            where: { isAvailable: true },
-                            orderBy: { sortOrder: 'asc' },
-                        },
-                    },
-                },
-            },
-        });
-        if (!restaurant)
-            throw new common_1.NotFoundException('Restaurant not found');
-        return restaurant;
+        return this.getCatalogBySlug(slug);
     }
     async getPublicProfile(slug) {
         const restaurant = await this.prisma.restaurant.findFirst({
@@ -44,23 +41,21 @@ let RestaurantsService = class RestaurantsService {
         return restaurant;
     }
     async getMenuBySlug(slug) {
+        return this.getCatalogBySlug(slug);
+    }
+    async getCatalogBySlug(slug) {
+        const cached = await this.redis.getCatalog(slug);
+        if (cached)
+            return cached;
         const restaurant = await this.prisma.restaurant.findFirst({
             where: { slug, isActive: true },
-            include: {
-                categories: {
-                    orderBy: { sortOrder: 'asc' },
-                    include: {
-                        products: {
-                            where: { isAvailable: true },
-                            orderBy: { sortOrder: 'asc' },
-                        },
-                    },
-                },
-            },
+            include: catalogInclude,
         });
         if (!restaurant)
             throw new common_1.NotFoundException('Restaurant not found');
-        return restaurant;
+        const payload = JSON.parse(JSON.stringify(restaurant));
+        await this.redis.setCatalog(restaurant.slug, restaurant.id, payload);
+        return payload;
     }
     async getById(id, restaurantId) {
         const where = { id };
@@ -72,12 +67,22 @@ let RestaurantsService = class RestaurantsService {
         return restaurant;
     }
     async update(id, data) {
-        return this.prisma.restaurant.update({ where: { id }, data });
+        const existing = await this.prisma.restaurant.findUnique({
+            where: { id },
+            select: { slug: true },
+        });
+        const restaurant = await this.prisma.restaurant.update({ where: { id }, data });
+        await this.redis.invalidateRestaurant(id, [existing?.slug, restaurant.slug].filter(Boolean));
+        return restaurant;
+    }
+    async invalidateCatalog(restaurantId) {
+        await this.redis.invalidateRestaurant(restaurantId);
     }
 };
 exports.RestaurantsService = RestaurantsService;
 exports.RestaurantsService = RestaurantsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        redis_service_1.RedisService])
 ], RestaurantsService);
 //# sourceMappingURL=restaurants.service.js.map

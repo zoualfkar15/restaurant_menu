@@ -1,6 +1,6 @@
 /**
  * Public menu data model — mirrors the shape returned by
- * `GET /api/restaurants/:slug/menu` (restaurant → categories → products).
+ * `GET /api/restaurants/:slug/catalog` (restaurant → categories → products).
  */
 export type MenuProduct = {
   id: string;

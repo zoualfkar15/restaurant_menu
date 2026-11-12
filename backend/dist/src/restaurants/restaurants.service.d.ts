@@ -1,75 +1,16 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { Prisma } from '@prisma/client';
 export declare class RestaurantsService {
     private prisma;
-    constructor(prisma: PrismaService);
-    findBySlug(slug: string): Promise<{
-        categories: ({
-            products: {
-                id: string;
-                name: string;
-                restaurantId: string;
-                createdAt: Date;
-                updatedAt: Date;
-                slug: string;
-                nameAr: string | null;
-                description: string | null;
-                descriptionAr: string | null;
-                sortOrder: number;
-                image: string | null;
-                isPopular: boolean;
-                isAvailable: boolean;
-                price: Prisma.Decimal;
-                ingredients: string | null;
-                calories: number | null;
-                allergens: string | null;
-                categoryId: string;
-            }[];
-        } & {
-            id: string;
-            name: string;
-            restaurantId: string;
-            createdAt: Date;
-            updatedAt: Date;
-            slug: string;
-            nameAr: string | null;
-            sortOrder: number;
-            image: string | null;
-        })[];
-    } & {
-        id: string;
-        email: string | null;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        slug: string;
-        nameAr: string | null;
-        description: string | null;
-        descriptionAr: string | null;
-        logo: string | null;
-        coverImage: string | null;
-        phone: string | null;
-        address: string | null;
-        addressAr: string | null;
-        latitude: Prisma.Decimal | null;
-        longitude: Prisma.Decimal | null;
-        whatsapp: string | null;
-        isActive: boolean;
-        sortOrder: number;
-        currency: import(".prisma/client").$Enums.Currency;
-        defaultLocale: string;
-        localesEnabled: Prisma.JsonValue | null;
-        openingHours: Prisma.JsonValue | null;
-        socialLinks: Prisma.JsonValue | null;
-    }>;
+    private redis;
+    constructor(prisma: PrismaService, redis: RedisService);
+    findBySlug(slug: string): Promise<any>;
     getPublicProfile(slug: string): Promise<{
         id: string;
-        email: string | null;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        slug: string;
         nameAr: string | null;
+        slug: string;
         description: string | null;
         descriptionAr: string | null;
         logo: string | null;
@@ -80,6 +21,7 @@ export declare class RestaurantsService {
         latitude: Prisma.Decimal | null;
         longitude: Prisma.Decimal | null;
         whatsapp: string | null;
+        email: string | null;
         isActive: boolean;
         sortOrder: number;
         currency: import(".prisma/client").$Enums.Currency;
@@ -87,74 +29,16 @@ export declare class RestaurantsService {
         localesEnabled: Prisma.JsonValue | null;
         openingHours: Prisma.JsonValue | null;
         socialLinks: Prisma.JsonValue | null;
-    }>;
-    getMenuBySlug(slug: string): Promise<{
-        categories: ({
-            products: {
-                id: string;
-                name: string;
-                restaurantId: string;
-                createdAt: Date;
-                updatedAt: Date;
-                slug: string;
-                nameAr: string | null;
-                description: string | null;
-                descriptionAr: string | null;
-                sortOrder: number;
-                image: string | null;
-                isPopular: boolean;
-                isAvailable: boolean;
-                price: Prisma.Decimal;
-                ingredients: string | null;
-                calories: number | null;
-                allergens: string | null;
-                categoryId: string;
-            }[];
-        } & {
-            id: string;
-            name: string;
-            restaurantId: string;
-            createdAt: Date;
-            updatedAt: Date;
-            slug: string;
-            nameAr: string | null;
-            sortOrder: number;
-            image: string | null;
-        })[];
-    } & {
-        id: string;
-        email: string | null;
-        name: string;
         createdAt: Date;
         updatedAt: Date;
-        slug: string;
-        nameAr: string | null;
-        description: string | null;
-        descriptionAr: string | null;
-        logo: string | null;
-        coverImage: string | null;
-        phone: string | null;
-        address: string | null;
-        addressAr: string | null;
-        latitude: Prisma.Decimal | null;
-        longitude: Prisma.Decimal | null;
-        whatsapp: string | null;
-        isActive: boolean;
-        sortOrder: number;
-        currency: import(".prisma/client").$Enums.Currency;
-        defaultLocale: string;
-        localesEnabled: Prisma.JsonValue | null;
-        openingHours: Prisma.JsonValue | null;
-        socialLinks: Prisma.JsonValue | null;
     }>;
+    getMenuBySlug(slug: string): Promise<any>;
+    getCatalogBySlug(slug: string): Promise<any>;
     getById(id: string, restaurantId?: string): Promise<{
         id: string;
-        email: string | null;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        slug: string;
         nameAr: string | null;
+        slug: string;
         description: string | null;
         descriptionAr: string | null;
         logo: string | null;
@@ -165,6 +49,7 @@ export declare class RestaurantsService {
         latitude: Prisma.Decimal | null;
         longitude: Prisma.Decimal | null;
         whatsapp: string | null;
+        email: string | null;
         isActive: boolean;
         sortOrder: number;
         currency: import(".prisma/client").$Enums.Currency;
@@ -172,15 +57,14 @@ export declare class RestaurantsService {
         localesEnabled: Prisma.JsonValue | null;
         openingHours: Prisma.JsonValue | null;
         socialLinks: Prisma.JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     update(id: string, data: Prisma.RestaurantUpdateInput): Promise<{
         id: string;
-        email: string | null;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        slug: string;
         nameAr: string | null;
+        slug: string;
         description: string | null;
         descriptionAr: string | null;
         logo: string | null;
@@ -191,6 +75,7 @@ export declare class RestaurantsService {
         latitude: Prisma.Decimal | null;
         longitude: Prisma.Decimal | null;
         whatsapp: string | null;
+        email: string | null;
         isActive: boolean;
         sortOrder: number;
         currency: import(".prisma/client").$Enums.Currency;
@@ -198,5 +83,8 @@ export declare class RestaurantsService {
         localesEnabled: Prisma.JsonValue | null;
         openingHours: Prisma.JsonValue | null;
         socialLinks: Prisma.JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
+    invalidateCatalog(restaurantId: string): Promise<void>;
 }

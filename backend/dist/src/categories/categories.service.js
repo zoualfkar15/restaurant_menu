@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CategoriesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const redis_service_1 = require("../redis/redis.service");
 const client_1 = require("@prisma/client");
 function slugify(text) {
     return text
@@ -22,8 +23,12 @@ function slugify(text) {
         .replace(/^-|-$/g, '');
 }
 let CategoriesService = class CategoriesService {
-    constructor(prisma) {
+    constructor(prisma, redis) {
         this.prisma = prisma;
+        this.redis = redis;
+    }
+    async bustCatalog(restaurantId) {
+        await this.redis.invalidateRestaurant(restaurantId);
     }
     async create(restaurantId, dto) {
         const slug = slugify(dto.name);
@@ -34,7 +39,7 @@ let CategoriesService = class CategoriesService {
         });
         const sortOrder = dto.sortOrder ?? (maxOrder?.sortOrder ?? 0) + 1;
         try {
-            return await this.prisma.category.create({
+            const category = await this.prisma.category.create({
                 data: {
                     restaurantId,
                     name: dto.name,
@@ -44,6 +49,8 @@ let CategoriesService = class CategoriesService {
                     ...(dto.nameAr != null && dto.nameAr !== '' && { nameAr: dto.nameAr }),
                 },
             });
+            await this.bustCatalog(restaurantId);
+            return category;
         }
         catch (e) {
             if (e instanceof client_1.Prisma.PrismaClientKnownRequestError) {
@@ -74,26 +81,32 @@ let CategoriesService = class CategoriesService {
     async update(id, restaurantId, dto) {
         await this.findOne(id, restaurantId);
         const slug = dto.name ? slugify(dto.name) : undefined;
-        return this.prisma.category.update({
+        const category = await this.prisma.category.update({
             where: { id },
             data: { ...dto, slug },
         });
+        await this.bustCatalog(restaurantId);
+        return category;
     }
     async remove(id, restaurantId) {
         await this.findOne(id, restaurantId);
-        return this.prisma.category.delete({ where: { id } });
+        const category = await this.prisma.category.delete({ where: { id } });
+        await this.bustCatalog(restaurantId);
+        return category;
     }
     async reorder(restaurantId, order) {
         await Promise.all(order.map(({ id, sortOrder }) => this.prisma.category.updateMany({
             where: { id, restaurantId },
             data: { sortOrder },
         })));
+        await this.bustCatalog(restaurantId);
         return this.findAll(restaurantId);
     }
 };
 exports.CategoriesService = CategoriesService;
 exports.CategoriesService = CategoriesService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        redis_service_1.RedisService])
 ], CategoriesService);
 //# sourceMappingURL=categories.service.js.map
