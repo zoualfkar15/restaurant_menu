@@ -53,14 +53,23 @@ __decorate([
 ], UpdateRestaurantDto.prototype, "localesEnabled", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateIf)((_, value) => value != null),
     (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], UpdateRestaurantDto.prototype, "logo", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateIf)((_, value) => value != null),
     (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], UpdateRestaurantDto.prototype, "coverImage", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => (typeof value === 'string' && value.trim() === '' ? null : value)),
+    (0, class_validator_1.ValidateIf)((_, value) => value != null),
+    (0, class_validator_1.Matches)(/^#[0-9A-Fa-f]{6}$/),
+    __metadata("design:type", Object)
+], UpdateRestaurantDto.prototype, "primaryColor", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

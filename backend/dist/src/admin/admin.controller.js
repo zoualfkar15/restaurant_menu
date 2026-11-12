@@ -62,7 +62,8 @@ let AdminController = class AdminController {
         if (!user.restaurantId)
             throw new common_1.ForbiddenException('No restaurant assigned to your account');
         const restaurant = await this.restaurants.getById(user.restaurantId, user.restaurantId);
-        const baseUrl = this.config.get('FRONTEND_URL', 'http://localhost:3000');
+        const baseUrl = this.config.get('FRONTEND_URL') ||
+            (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : 'http://localhost:3000');
         const menuUrl = `${baseUrl}/restaurant/${restaurant.slug}/menu`;
         return { url: menuUrl, slug: restaurant.slug };
     }

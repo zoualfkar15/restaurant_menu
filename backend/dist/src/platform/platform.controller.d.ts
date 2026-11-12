@@ -2,22 +2,20 @@ import { RestaurantsService } from '../restaurants/restaurants.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../redis/redis.service';
 import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
 export declare class PlatformController {
     private prisma;
     private restaurants;
     private subscriptions;
     private analytics;
-    private redis;
-    constructor(prisma: PrismaService, restaurants: RestaurantsService, subscriptions: SubscriptionsService, analytics: AnalyticsService, redis: RedisService);
+    constructor(prisma: PrismaService, restaurants: RestaurantsService, subscriptions: SubscriptionsService, analytics: AnalyticsService);
     listRestaurants(skip?: number, take?: number): Promise<{
         data: ({
             subscriptions: {
                 id: string;
+                restaurantId: string;
                 createdAt: Date;
                 updatedAt: Date;
-                restaurantId: string;
                 plan: import(".prisma/client").$Enums.SubscriptionPlan;
                 status: import(".prisma/client").$Enums.SubscriptionStatus;
                 isYearly: boolean;
@@ -32,20 +30,23 @@ export declare class PlatformController {
             };
         } & {
             id: string;
+            email: string | null;
             name: string;
-            nameAr: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             slug: string;
+            nameAr: string | null;
             description: string | null;
             descriptionAr: string | null;
             logo: string | null;
             coverImage: string | null;
+            primaryColor: string | null;
             phone: string | null;
             address: string | null;
             addressAr: string | null;
             latitude: import("@prisma/client/runtime/library").Decimal | null;
             longitude: import("@prisma/client/runtime/library").Decimal | null;
             whatsapp: string | null;
-            email: string | null;
             isActive: boolean;
             sortOrder: number;
             currency: import(".prisma/client").$Enums.Currency;
@@ -53,8 +54,6 @@ export declare class PlatformController {
             localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
             openingHours: import("@prisma/client/runtime/library").JsonValue | null;
             socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
-            createdAt: Date;
-            updatedAt: Date;
         })[];
         total: number;
         skip: number;
@@ -66,20 +65,23 @@ export declare class PlatformController {
         description?: string;
     }): Promise<{
         id: string;
+        email: string | null;
         name: string;
-        nameAr: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
+        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
         logo: string | null;
         coverImage: string | null;
+        primaryColor: string | null;
         phone: string | null;
         address: string | null;
         addressAr: string | null;
         latitude: import("@prisma/client/runtime/library").Decimal | null;
         longitude: import("@prisma/client/runtime/library").Decimal | null;
         whatsapp: string | null;
-        email: string | null;
         isActive: boolean;
         sortOrder: number;
         currency: import(".prisma/client").$Enums.Currency;
@@ -87,26 +89,24 @@ export declare class PlatformController {
         localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
         openingHours: import("@prisma/client/runtime/library").JsonValue | null;
         socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getRestaurant(id: string): Promise<{
         categories: {
             id: string;
             name: string;
-            nameAr: string | null;
-            slug: string;
-            sortOrder: number;
+            restaurantId: string;
             createdAt: Date;
             updatedAt: Date;
-            restaurantId: string;
+            slug: string;
+            nameAr: string | null;
+            sortOrder: number;
             image: string | null;
         }[];
         subscriptions: {
             id: string;
+            restaurantId: string;
             createdAt: Date;
             updatedAt: Date;
-            restaurantId: string;
             plan: import(".prisma/client").$Enums.SubscriptionPlan;
             status: import(".prisma/client").$Enums.SubscriptionStatus;
             isYearly: boolean;
@@ -120,20 +120,23 @@ export declare class PlatformController {
         };
     } & {
         id: string;
+        email: string | null;
         name: string;
-        nameAr: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
+        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
         logo: string | null;
         coverImage: string | null;
+        primaryColor: string | null;
         phone: string | null;
         address: string | null;
         addressAr: string | null;
         latitude: import("@prisma/client/runtime/library").Decimal | null;
         longitude: import("@prisma/client/runtime/library").Decimal | null;
         whatsapp: string | null;
-        email: string | null;
         isActive: boolean;
         sortOrder: number;
         currency: import(".prisma/client").$Enums.Currency;
@@ -141,8 +144,6 @@ export declare class PlatformController {
         localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
         openingHours: import("@prisma/client/runtime/library").JsonValue | null;
         socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     updateRestaurant(id: string, body: {
         name?: string;
@@ -151,20 +152,23 @@ export declare class PlatformController {
         isActive?: boolean;
     }): Promise<{
         id: string;
+        email: string | null;
         name: string;
-        nameAr: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
+        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
         logo: string | null;
         coverImage: string | null;
+        primaryColor: string | null;
         phone: string | null;
         address: string | null;
         addressAr: string | null;
         latitude: import("@prisma/client/runtime/library").Decimal | null;
         longitude: import("@prisma/client/runtime/library").Decimal | null;
         whatsapp: string | null;
-        email: string | null;
         isActive: boolean;
         sortOrder: number;
         currency: import(".prisma/client").$Enums.Currency;
@@ -172,25 +176,26 @@ export declare class PlatformController {
         localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
         openingHours: import("@prisma/client/runtime/library").JsonValue | null;
         socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     deleteRestaurant(id: string): Promise<{
         id: string;
+        email: string | null;
         name: string;
-        nameAr: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
+        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
         logo: string | null;
         coverImage: string | null;
+        primaryColor: string | null;
         phone: string | null;
         address: string | null;
         addressAr: string | null;
         latitude: import("@prisma/client/runtime/library").Decimal | null;
         longitude: import("@prisma/client/runtime/library").Decimal | null;
         whatsapp: string | null;
-        email: string | null;
         isActive: boolean;
         sortOrder: number;
         currency: import(".prisma/client").$Enums.Currency;
@@ -198,8 +203,6 @@ export declare class PlatformController {
         localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
         openingHours: import("@prisma/client/runtime/library").JsonValue | null;
         socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     listSubscriptions(skip?: number, take?: number): Promise<{
         data: ({
@@ -210,9 +213,9 @@ export declare class PlatformController {
             };
         } & {
             id: string;
+            restaurantId: string;
             createdAt: Date;
             updatedAt: Date;
-            restaurantId: string;
             plan: import(".prisma/client").$Enums.SubscriptionPlan;
             status: import(".prisma/client").$Enums.SubscriptionStatus;
             isYearly: boolean;
@@ -227,9 +230,9 @@ export declare class PlatformController {
     }>;
     getRestaurantSubscription(id: string): Promise<{
         id: string;
+        restaurantId: string;
         createdAt: Date;
         updatedAt: Date;
-        restaurantId: string;
         plan: import(".prisma/client").$Enums.SubscriptionPlan;
         status: import(".prisma/client").$Enums.SubscriptionStatus;
         isYearly: boolean;
@@ -243,9 +246,9 @@ export declare class PlatformController {
         status?: SubscriptionStatus;
     }): Promise<{
         id: string;
+        restaurantId: string;
         createdAt: Date;
         updatedAt: Date;
-        restaurantId: string;
         plan: import(".prisma/client").$Enums.SubscriptionPlan;
         status: import(".prisma/client").$Enums.SubscriptionStatus;
         isYearly: boolean;

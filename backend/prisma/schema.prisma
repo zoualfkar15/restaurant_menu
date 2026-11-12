@@ -74,6 +74,7 @@ model Restaurant {
   descriptionAr String? @map("description_ar") @db.Text // Arabic
   logo        String?
   coverImage  String?   @map("cover_image")
+  primaryColor String?  @map("primary_color") // hex e.g. #087f5b; null = default brand green
   phone       String?
   address     String?   @db.Text   // English address
   addressAr   String?   @map("address_ar") @db.Text // Arabic address
@@ -195,4 +196,15 @@ model QrScan {
   @@index([restaurantId])
   @@index([scannedAt])
   @@map("qr_scans")
+}
+
+model StoredFile {
+  id        String   @id @default(cuid())
+  folder    String
+  mimeType  String   @map("mime_type")
+  data      Bytes
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([folder])
+  @@map("stored_files")
 }

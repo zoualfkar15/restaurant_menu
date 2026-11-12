@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { imageUrl } from '@/utils/imageUrl';
 
 type AppImageProps = {
@@ -11,7 +11,8 @@ type AppImageProps = {
 };
 
 function AppImage({ src, alt, className = '', width, height, loading = 'lazy' }: AppImageProps) {
-  if (!src) return null;
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) return null;
   return (
     <img
       src={imageUrl(src)}
@@ -21,6 +22,7 @@ function AppImage({ src, alt, className = '', width, height, loading = 'lazy' }:
       height={height}
       loading={loading}
       decoding="async"
+      onError={() => setFailed(true)}
     />
   );
 }

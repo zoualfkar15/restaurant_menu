@@ -1,5 +1,5 @@
-import { IsString, IsOptional, IsObject, IsNumber, Min, Max, IsIn, IsArray } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsObject, IsNumber, Min, Max, IsIn, IsArray, Matches, ValidateIf } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class UpdateRestaurantDto {
   @IsOptional()
@@ -32,12 +32,21 @@ export class UpdateRestaurantDto {
   localesEnabled?: string[];
 
   @IsOptional()
+  @ValidateIf((_, value) => value != null)
   @IsString()
-  logo?: string;
+  logo?: string | null;
 
   @IsOptional()
+  @ValidateIf((_, value) => value != null)
   @IsString()
-  coverImage?: string;
+  coverImage?: string | null;
+
+  /** Hex like #087f5b. Empty string clears to the default MenuQR green. */
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' && value.trim() === '' ? null : value))
+  @ValidateIf((_, value) => value != null)
+  @Matches(/^#[0-9A-Fa-f]{6}$/)
+  primaryColor?: string | null;
 
   @IsOptional()
   @IsString()

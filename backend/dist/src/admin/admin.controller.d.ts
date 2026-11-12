@@ -14,20 +14,23 @@ export declare class AdminController {
     constructor(restaurants: RestaurantsService, analytics: AnalyticsService, config: ConfigService, prisma: PrismaService, auth: AuthService);
     getRestaurant(user: JwtPayload): Promise<{
         id: string;
+        email: string | null;
         name: string;
-        nameAr: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
+        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
         logo: string | null;
         coverImage: string | null;
+        primaryColor: string | null;
         phone: string | null;
         address: string | null;
         addressAr: string | null;
         latitude: import("@prisma/client/runtime/library").Decimal | null;
         longitude: import("@prisma/client/runtime/library").Decimal | null;
         whatsapp: string | null;
-        email: string | null;
         isActive: boolean;
         sortOrder: number;
         currency: import(".prisma/client").$Enums.Currency;
@@ -35,25 +38,26 @@ export declare class AdminController {
         localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
         openingHours: import("@prisma/client/runtime/library").JsonValue | null;
         socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     updateRestaurant(user: JwtPayload, dto: UpdateRestaurantDto): Promise<{
         id: string;
+        email: string | null;
         name: string;
-        nameAr: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         slug: string;
+        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
         logo: string | null;
         coverImage: string | null;
+        primaryColor: string | null;
         phone: string | null;
         address: string | null;
         addressAr: string | null;
         latitude: import("@prisma/client/runtime/library").Decimal | null;
         longitude: import("@prisma/client/runtime/library").Decimal | null;
         whatsapp: string | null;
-        email: string | null;
         isActive: boolean;
         sortOrder: number;
         currency: import(".prisma/client").$Enums.Currency;
@@ -61,8 +65,6 @@ export declare class AdminController {
         localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
         openingHours: import("@prisma/client/runtime/library").JsonValue | null;
         socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getStats(user: JwtPayload): Promise<{
         menuItems: number;
@@ -82,20 +84,23 @@ export declare class AdminController {
         expiresIn: number;
         restaurant: {
             id: string;
+            email: string | null;
             name: string;
-            nameAr: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             slug: string;
+            nameAr: string | null;
             description: string | null;
             descriptionAr: string | null;
             logo: string | null;
             coverImage: string | null;
+            primaryColor: string | null;
             phone: string | null;
             address: string | null;
             addressAr: string | null;
             latitude: import("@prisma/client/runtime/library").Decimal | null;
             longitude: import("@prisma/client/runtime/library").Decimal | null;
             whatsapp: string | null;
-            email: string | null;
             isActive: boolean;
             sortOrder: number;
             currency: import(".prisma/client").$Enums.Currency;
@@ -103,8 +108,6 @@ export declare class AdminController {
             localesEnabled: import("@prisma/client/runtime/library").JsonValue | null;
             openingHours: import("@prisma/client/runtime/library").JsonValue | null;
             socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
-            createdAt: Date;
-            updatedAt: Date;
         };
     }>;
 }

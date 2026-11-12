@@ -31,6 +31,7 @@ export type MenuRestaurant = {
   descriptionAr?: string | null;
   logo?: string | null;
   coverImage?: string | null;
+  primaryColor?: string | null;
   phone?: string | null;
   whatsapp?: string | null;
   address?: string | null;

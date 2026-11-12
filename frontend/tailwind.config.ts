@@ -24,19 +24,19 @@ const config: Config = {
           900: '#772f14',
           950: '#401508',
         },
-        // Restaurant menu primary action color (fresh green).
+        // Overridable per restaurant via `--primary-*` (space-separated RGB).
         primary: {
-          50: '#eaf7f2',
-          100: '#cdeadf',
-          200: '#9dd6c1',
-          300: '#66bd9e',
-          400: '#33a37e',
-          500: '#0f9068',
-          600: '#087f5b',
-          700: '#07684b',
-          800: '#06523c',
-          900: '#053d2d',
-          950: '#02261c',
+          50: 'rgb(var(--primary-50) / <alpha-value>)',
+          100: 'rgb(var(--primary-100) / <alpha-value>)',
+          200: 'rgb(var(--primary-200) / <alpha-value>)',
+          300: 'rgb(var(--primary-300) / <alpha-value>)',
+          400: 'rgb(var(--primary-400) / <alpha-value>)',
+          500: 'rgb(var(--primary-500) / <alpha-value>)',
+          600: 'rgb(var(--primary-600) / <alpha-value>)',
+          700: 'rgb(var(--primary-700) / <alpha-value>)',
+          800: 'rgb(var(--primary-800) / <alpha-value>)',
+          900: 'rgb(var(--primary-900) / <alpha-value>)',
+          950: 'rgb(var(--primary-950) / <alpha-value>)',
         },
         // Neutral surfaces & text for the menu experience.
         menu: {
@@ -57,7 +57,7 @@ const config: Config = {
         'menu-md': '0 4px 14px -4px rgb(32 33 36 / 0.08), 0 2px 6px -2px rgb(32 33 36 / 0.04)',
         'menu-lg': '0 16px 40px -12px rgb(32 33 36 / 0.16), 0 6px 16px -8px rgb(32 33 36 / 0.08)',
         'menu-glow': '0 0 0 1px rgb(237 118 26 / 0.15), 0 8px 24px -6px rgb(237 118 26 / 0.2)',
-        'primary-glow': '0 8px 24px -8px rgb(8 127 91 / 0.45)',
+        'primary-glow': '0 8px 24px -8px rgb(var(--primary-600) / 0.45)',
         'menu-top': '0 -8px 30px -12px rgb(32 33 36 / 0.18)',
       },
       screens: {

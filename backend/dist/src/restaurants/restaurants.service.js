@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RestaurantsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-const redis_service_1 = require("../redis/redis.service");
 const catalogInclude = {
     categories: {
         orderBy: { sortOrder: 'asc' },
@@ -25,9 +24,8 @@ const catalogInclude = {
     },
 };
 let RestaurantsService = class RestaurantsService {
-    constructor(prisma, redis) {
+    constructor(prisma) {
         this.prisma = prisma;
-        this.redis = redis;
     }
     async findBySlug(slug) {
         return this.getCatalogBySlug(slug);
@@ -44,18 +42,13 @@ let RestaurantsService = class RestaurantsService {
         return this.getCatalogBySlug(slug);
     }
     async getCatalogBySlug(slug) {
-        const cached = await this.redis.getCatalog(slug);
-        if (cached)
-            return cached;
         const restaurant = await this.prisma.restaurant.findFirst({
             where: { slug, isActive: true },
             include: catalogInclude,
         });
         if (!restaurant)
             throw new common_1.NotFoundException('Restaurant not found');
-        const payload = JSON.parse(JSON.stringify(restaurant));
-        await this.redis.setCatalog(restaurant.slug, restaurant.id, payload);
-        return payload;
+        return restaurant;
     }
     async getById(id, restaurantId) {
         const where = { id };
@@ -67,22 +60,19 @@ let RestaurantsService = class RestaurantsService {
         return restaurant;
     }
     async update(id, data) {
-        const existing = await this.prisma.restaurant.findUnique({
-            where: { id },
-            select: { slug: true },
-        });
-        const restaurant = await this.prisma.restaurant.update({ where: { id }, data });
-        await this.redis.invalidateRestaurant(id, [existing?.slug, restaurant.slug].filter(Boolean));
-        return restaurant;
-    }
-    async invalidateCatalog(restaurantId) {
-        await this.redis.invalidateRestaurant(restaurantId);
+        const payload = { ...data };
+        if (payload.primaryColor === '')
+            payload.primaryColor = null;
+        if (payload.logo === '')
+            payload.logo = null;
+        if (payload.coverImage === '')
+            payload.coverImage = null;
+        return this.prisma.restaurant.update({ where: { id }, data: payload });
     }
 };
 exports.RestaurantsService = RestaurantsService;
 exports.RestaurantsService = RestaurantsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        redis_service_1.RedisService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], RestaurantsService);
 //# sourceMappingURL=restaurants.service.js.map

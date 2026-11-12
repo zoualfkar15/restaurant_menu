@@ -1,9 +1,11 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { authFetch } from '@/services/api';
+import { authFetch, authUploadFile } from '@/services/api';
 import { useLocale } from '@/lib/locale';
 import Spinner from '@/components/Spinner';
 import MapPicker from '@/components/MapPicker';
+import AppImage from '@/components/AppImage';
 import { FormError, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from '@/components/SiteForm';
+import { DEFAULT_PRIMARY_HEX, parseHexColor } from '@/lib/restaurantTheme';
 
 const OPENING_HOURS_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 const OPENING_HOURS_DAY_KEYS: Record<(typeof OPENING_HOURS_DAYS)[number], string> = {
@@ -16,9 +18,10 @@ type Restaurant = {
   currency?: 'USD' | 'TRY' | 'SYP'; defaultLocale?: 'en' | 'ar'; localesEnabled?: string[];
   phone?: string; address?: string; addressAr?: string; latitude?: number | string | null; longitude?: number | string | null;
   whatsapp?: string; email?: string; openingHours?: Record<string, string>; socialLinks?: Record<string, string>;
+  logo?: string | null; coverImage?: string | null; primaryColor?: string | null;
 };
 
-const RESTAURANT_FORM_KEYS = ['name', 'nameAr', 'description', 'descriptionAr', 'currency', 'defaultLocale', 'localesEnabled', 'phone', 'address', 'addressAr', 'latitude', 'longitude', 'whatsapp', 'email', 'openingHours', 'socialLinks'] as const;
+const RESTAURANT_FORM_KEYS = ['name', 'nameAr', 'description', 'descriptionAr', 'currency', 'defaultLocale', 'localesEnabled', 'phone', 'address', 'addressAr', 'latitude', 'longitude', 'whatsapp', 'email', 'openingHours', 'socialLinks', 'logo', 'coverImage', 'primaryColor'] as const;
 
 async function searchLocation(query: string) {
   if (!query.trim()) return null;
@@ -40,6 +43,10 @@ export default function RestaurantSettingsPage() {
   const [locationSearching, setLocationSearching] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const formTopRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,6 +62,9 @@ export default function RestaurantSettingsPage() {
         currency: data.currency === 'TRY' ? 'TRY' : data.currency === 'SYP' ? 'SYP' : 'USD',
         addressAr: data.addressAr ?? '',
         openingHours: hours,
+        logo: data.logo ?? null,
+        coverImage: data.coverImage ?? null,
+        primaryColor: parseHexColor(data.primaryColor),
       });
     });
   }, []);
@@ -74,6 +84,23 @@ export default function RestaurantSettingsPage() {
   }, [locationQuery, t]);
 
   const handleMapPick = useCallback((lat: number, lng: number) => setForm((f) => ({ ...f, latitude: lat, longitude: lng })), []);
+
+  async function handleImageUpload(file: File, field: 'logo' | 'coverImage') {
+    if (!file.type.startsWith('image/')) return;
+    const setBusy = field === 'logo' ? setUploadingLogo : setUploadingCover;
+    setBusy(true);
+    setMessage('');
+    setMessageType('');
+    try {
+      const { url } = await authUploadFile(file, field === 'logo' ? '/admin/upload/logo' : '/admin/upload/cover');
+      setForm((f) => ({ ...f, [field]: url }));
+    } catch {
+      setMessage(t('restaurant.failedSave'));
+      setMessageType('error');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const handleCurrentLocation = useCallback(() => {
     setLocationError('');
@@ -100,6 +127,8 @@ export default function RestaurantSettingsPage() {
         if (n !== undefined && !Number.isNaN(n)) payload[key] = n;
       } else if (key === 'openingHours' || key === 'socialLinks') {
         if (v && typeof v === 'object') payload[key] = v;
+      } else if (key === 'primaryColor' || key === 'logo' || key === 'coverImage') {
+        payload[key] = v ?? null;
       } else payload[key] = v;
     }
     try {
@@ -120,6 +149,54 @@ export default function RestaurantSettingsPage() {
         <div><label className={labelClass}>{t('restaurant.nameAr')}</label><input value={form.nameAr ?? ''} onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))} className={inputClass} dir="rtl" /></div>
         <div><label className={labelClass}>{t('restaurant.descriptionEn')}</label><textarea value={form.description ?? ''} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className={inputClass} rows={3} /></div>
         <div><label className={labelClass}>{t('restaurant.descriptionAr')}</label><textarea value={form.descriptionAr ?? ''} onChange={(e) => setForm((f) => ({ ...f, descriptionAr: e.target.value }))} className={inputClass} rows={3} dir="rtl" /></div>
+        <div className="space-y-4 rounded-[22px] bg-menu-surface p-4 ring-1 ring-menu-border">
+          <h2 className="font-extrabold text-menu-ink">{t('restaurant.branding')}</h2>
+          <div>
+            <label className={labelClass}>{t('restaurant.logo')}</label>
+            <input ref={logoInputRef} type="file" accept="image/*" className="w-full text-sm text-menu-ink-muted" onChange={(e) => { const file = e.target.files?.[0]; if (file) void handleImageUpload(file, 'logo'); if (logoInputRef.current) logoInputRef.current.value = ''; }} />
+            {uploadingLogo && <p className="mt-1 text-sm font-medium text-menu-ink-muted">{t('menu.uploading')}</p>}
+            {form.logo && (
+              <div className="mt-2 flex items-center gap-3">
+                <div className="h-16 w-16 overflow-hidden rounded-2xl ring-1 ring-menu-border">
+                  <AppImage src={form.logo} alt="" className="h-full w-full object-cover" width={64} height={64} />
+                </div>
+                <button type="button" className="text-sm font-bold text-red-700 hover:underline" onClick={() => setForm((f) => ({ ...f, logo: null }))}>{t('restaurant.removeImage')}</button>
+              </div>
+            )}
+          </div>
+          <div>
+            <label className={labelClass}>{t('restaurant.cover')}</label>
+            <input ref={coverInputRef} type="file" accept="image/*" className="w-full text-sm text-menu-ink-muted" onChange={(e) => { const file = e.target.files?.[0]; if (file) void handleImageUpload(file, 'coverImage'); if (coverInputRef.current) coverInputRef.current.value = ''; }} />
+            {uploadingCover && <p className="mt-1 text-sm font-medium text-menu-ink-muted">{t('menu.uploading')}</p>}
+            {form.coverImage && (
+              <div className="mt-2">
+                <div className="h-24 w-full overflow-hidden rounded-2xl ring-1 ring-menu-border">
+                  <AppImage src={form.coverImage} alt="" className="h-full w-full object-cover" width={400} height={96} />
+                </div>
+                <button type="button" className="mt-2 text-sm font-bold text-red-700 hover:underline" onClick={() => setForm((f) => ({ ...f, coverImage: null }))}>{t('restaurant.removeImage')}</button>
+              </div>
+            )}
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="primary-color">{t('restaurant.primaryColor')}</label>
+            <p className="mb-2 text-xs font-medium text-menu-ink-muted">{t('restaurant.primaryColorHint')}</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                id="primary-color"
+                type="color"
+                value={parseHexColor(form.primaryColor) ?? DEFAULT_PRIMARY_HEX}
+                onChange={(e) => setForm((f) => ({ ...f, primaryColor: e.target.value }))}
+                className="h-12 w-16 cursor-pointer rounded-xl border-0 bg-transparent p-1"
+              />
+              <span className="font-mono text-sm font-semibold text-menu-ink" dir="ltr">{parseHexColor(form.primaryColor) ?? DEFAULT_PRIMARY_HEX}</span>
+              {form.primaryColor && (
+                <button type="button" className={`${secondaryButtonClass} min-h-[44px] px-4`} onClick={() => setForm((f) => ({ ...f, primaryColor: null }))}>
+                  {t('restaurant.useDefaultColor')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
         <div className="space-y-4 rounded-[22px] bg-menu-surface p-4 ring-1 ring-menu-border">
           <h2 className="font-extrabold text-menu-ink">{t('restaurant.languageCurrency')}</h2>
           <div><label className={labelClass}>{t('restaurant.currency')}</label><select value={form.currency ?? 'USD'} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value as 'USD' | 'TRY' | 'SYP' }))} className={inputClass}><option value="USD">USD ($)</option><option value="TRY">TRY (₺)</option><option value="SYP">SYP (£S)</option></select></div>

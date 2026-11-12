@@ -54,6 +54,14 @@ export class RestaurantsService {
   }
 
   async update(id: string, data: Prisma.RestaurantUpdateInput) {
-    return this.prisma.restaurant.update({ where: { id }, data });
+    const payload = { ...data } as Prisma.RestaurantUpdateInput & {
+      primaryColor?: string | null;
+      logo?: string | null;
+      coverImage?: string | null;
+    };
+    if (payload.primaryColor === '') payload.primaryColor = null;
+    if (payload.logo === '') payload.logo = null;
+    if (payload.coverImage === '') payload.coverImage = null;
+    return this.prisma.restaurant.update({ where: { id }, data: payload });
   }
 }

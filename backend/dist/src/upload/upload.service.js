@@ -12,19 +12,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const fs = require("fs");
-const path = require("path");
-const crypto_1 = require("crypto");
+const prisma_service_1 = require("../prisma/prisma.service");
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE = 5 * 1024 * 1024;
 let UploadService = class UploadService {
-    constructor(config) {
+    constructor(config, prisma) {
         this.config = config;
-        this.driver = this.config.get('UPLOAD_DRIVER', 'local');
-        this.localPath = this.config.get('UPLOAD_LOCAL_PATH', './uploads');
+        this.prisma = prisma;
     }
     async saveFile(file, folder) {
-        if (!file || !file.mimetype)
+        if (!file || !file.mimetype || !file.buffer)
             throw new common_1.BadRequestException('No file');
         if (!ALLOWED_MIMES.includes(file.mimetype)) {
             throw new common_1.BadRequestException('Invalid file type. Allowed: JPEG, PNG, WebP, GIF');
@@ -32,25 +29,20 @@ let UploadService = class UploadService {
         const maxSize = Number(this.config.get('UPLOAD_MAX_SIZE', MAX_SIZE));
         if (file.size > maxSize)
             throw new common_1.BadRequestException('File too large');
-        if (this.driver === 'local') {
-            return this.saveLocal(file, folder);
-        }
-        throw new common_1.BadRequestException('S3 upload not configured. Use UPLOAD_DRIVER=local');
-    }
-    async saveLocal(file, folder) {
-        const dir = path.join(this.localPath, folder);
-        if (!fs.existsSync(dir))
-            fs.mkdirSync(dir, { recursive: true });
-        const ext = path.extname(file.originalname) || '.jpg';
-        const filename = `${(0, crypto_1.randomUUID)()}${ext}`;
-        const filepath = path.join(dir, filename);
-        fs.writeFileSync(filepath, file.buffer);
-        return `/uploads/${folder}/${filename}`;
+        const stored = await this.prisma.storedFile.create({
+            data: {
+                folder,
+                mimeType: file.mimetype,
+                data: Uint8Array.from(file.buffer),
+            },
+        });
+        return `/api/files/${stored.id}`;
     }
 };
 exports.UploadService = UploadService;
 exports.UploadService = UploadService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        prisma_service_1.PrismaService])
 ], UploadService);
 //# sourceMappingURL=upload.service.js.map

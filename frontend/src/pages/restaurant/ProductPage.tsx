@@ -11,6 +11,7 @@ import CartDrawer from '@/components/menu/CartDrawer';
 import CartToast from '@/components/menu/CartToast';
 import { ArrowBackIcon, CartIcon, PlateIcon, PlusIcon, StarIcon } from '@/components/menu/icons';
 import type { MenuRestaurant } from '@/types/menu';
+import RestaurantTheme from '@/components/RestaurantTheme';
 
 type Product = {
   id?: string;
@@ -213,9 +214,11 @@ export default function ProductPage() {
 
   if (loading) {
     return (
-      <div className="menu-bg flex min-h-screen items-center justify-center">
-        <Spinner className="h-8 w-8 text-primary-600" />
-      </div>
+      <RestaurantTheme loading>
+        <div className="menu-bg flex min-h-screen items-center justify-center">
+          <Spinner className="h-8 w-8 text-primary-600" />
+        </div>
+      </RestaurantTheme>
     );
   }
   if (!product || !slug) {
@@ -238,8 +241,10 @@ export default function ProductPage() {
   const currency = rest?.currency === 'TRY' ? 'TRY' : rest?.currency === 'SYP' ? 'SYP' : 'USD';
 
   return (
-    <LocaleProvider defaultLocale={defaultLocale} enabledLocales={enabledLocales} currency={currency}>
-      <ProductContent product={product} restaurantSlug={slug} />
-    </LocaleProvider>
+    <RestaurantTheme color={rest?.primaryColor}>
+      <LocaleProvider defaultLocale={defaultLocale} enabledLocales={enabledLocales} currency={currency}>
+        <ProductContent product={product} restaurantSlug={slug} />
+      </LocaleProvider>
+    </RestaurantTheme>
   );
 }

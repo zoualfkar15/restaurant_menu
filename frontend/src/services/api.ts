@@ -36,11 +36,11 @@ export async function authFetch(path: string, options: RequestInit = {}): Promis
   return res;
 }
 
-export async function authUploadFile(file: File): Promise<{ url: string }> {
+export async function authUploadFile(file: File, path = '/admin/upload'): Promise<{ url: string }> {
   const token = localStorage.getItem('accessToken');
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch(apiUrl('/admin/upload'), {
+  const res = await fetch(apiUrl(path), {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: form,

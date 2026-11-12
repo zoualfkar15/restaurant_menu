@@ -6,8 +6,9 @@ export declare class UpdateRestaurantDto {
     currency?: 'USD' | 'TRY' | 'SYP';
     defaultLocale?: string;
     localesEnabled?: string[];
-    logo?: string;
-    coverImage?: string;
+    logo?: string | null;
+    coverImage?: string | null;
+    primaryColor?: string | null;
     phone?: string;
     address?: string;
     addressAr?: string;

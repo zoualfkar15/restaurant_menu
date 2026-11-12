@@ -5,6 +5,7 @@ import { LocaleProvider, useLocale } from '@/lib/locale';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCart } from '@/hooks/useCart';
 import { AboutPageSkeleton } from '@/components/Skeleton';
+import RestaurantTheme from '@/components/RestaurantTheme';
 import RestaurantHero from '@/components/menu/RestaurantHero';
 import CartBar from '@/components/menu/CartBar';
 import CartDrawer from '@/components/menu/CartDrawer';
@@ -343,7 +344,13 @@ export default function RestaurantLandingPage() {
     };
   }, [slug]);
 
-  if (loading) return <AboutPageSkeleton />;
+  if (loading) {
+    return (
+      <RestaurantTheme loading>
+        <AboutPageSkeleton />
+      </RestaurantTheme>
+    );
+  }
   if (!restaurant) {
     return (
       <div className="menu-bg font-menu flex min-h-screen items-center justify-center px-6 text-center">
@@ -363,8 +370,10 @@ export default function RestaurantLandingPage() {
   const currency = restaurant.currency === 'TRY' ? 'TRY' : restaurant.currency === 'SYP' ? 'SYP' : 'USD';
 
   return (
-    <LocaleProvider defaultLocale={defaultLocale} enabledLocales={enabledLocales} currency={currency}>
-      <AboutContent restaurant={restaurant} />
-    </LocaleProvider>
+    <RestaurantTheme color={restaurant.primaryColor}>
+      <LocaleProvider defaultLocale={defaultLocale} enabledLocales={enabledLocales} currency={currency}>
+        <AboutContent restaurant={restaurant} />
+      </LocaleProvider>
+    </RestaurantTheme>
   );
 }

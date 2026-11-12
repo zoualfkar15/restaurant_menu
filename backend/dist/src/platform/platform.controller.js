@@ -23,7 +23,6 @@ const restaurants_service_1 = require("../restaurants/restaurants.service");
 const subscriptions_service_1 = require("../subscriptions/subscriptions.service");
 const analytics_service_1 = require("../analytics/analytics.service");
 const prisma_service_1 = require("../prisma/prisma.service");
-const redis_service_1 = require("../redis/redis.service");
 const client_2 = require("@prisma/client");
 function slugify(text) {
     return text
@@ -34,12 +33,11 @@ function slugify(text) {
         .replace(/^-|-$/g, '');
 }
 let PlatformController = class PlatformController {
-    constructor(prisma, restaurants, subscriptions, analytics, redis) {
+    constructor(prisma, restaurants, subscriptions, analytics) {
         this.prisma = prisma;
         this.restaurants = restaurants;
         this.subscriptions = subscriptions;
         this.analytics = analytics;
-        this.redis = redis;
     }
     async listRestaurants(skip = 0, take = 20) {
         const [data, total] = await Promise.all([
@@ -103,9 +101,7 @@ let PlatformController = class PlatformController {
         });
         if (!existing)
             throw new common_1.NotFoundException('Restaurant not found');
-        const restaurant = await this.prisma.restaurant.update({ where: { id }, data: body });
-        await this.redis.invalidateRestaurant(id, [existing.slug, restaurant.slug]);
-        return restaurant;
+        return this.prisma.restaurant.update({ where: { id }, data: body });
     }
     async deleteRestaurant(id) {
         const existing = await this.prisma.restaurant.findUnique({
@@ -114,7 +110,6 @@ let PlatformController = class PlatformController {
         });
         if (!existing)
             throw new common_1.NotFoundException('Restaurant not found');
-        await this.redis.invalidateRestaurant(id, [existing.slug]);
         return this.prisma.restaurant.delete({ where: { id } });
     }
     async listSubscriptions(skip = 0, take = 50) {
@@ -204,7 +199,6 @@ exports.PlatformController = PlatformController = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         restaurants_service_1.RestaurantsService,
         subscriptions_service_1.SubscriptionsService,
-        analytics_service_1.AnalyticsService,
-        redis_service_1.RedisService])
+        analytics_service_1.AnalyticsService])
 ], PlatformController);
 //# sourceMappingURL=platform.controller.js.map

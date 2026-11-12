@@ -7,6 +7,18 @@
   --background: #fafafa;
   --brand: #ed761a;
   --font-sans: 'Inter', system-ui, sans-serif;
+  /* Default MenuQR teal — restaurant pages override `--primary-*` after load. */
+  --primary-50: 234 247 242;
+  --primary-100: 205 234 223;
+  --primary-200: 157 214 193;
+  --primary-300: 102 189 158;
+  --primary-400: 51 163 126;
+  --primary-500: 15 144 104;
+  --primary-600: 8 127 91;
+  --primary-700: 7 104 75;
+  --primary-800: 6 82 60;
+  --primary-900: 5 61 45;
+  --primary-950: 2 38 28;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -56,12 +68,12 @@ textarea::placeholder {
   }
   /* Fallback hero when the restaurant has no cover image. */
   .hero-fallback {
-    background-color: #0b3d2e;
+    background-color: rgb(var(--primary-900));
     background-image:
-      radial-gradient(ellipse 70% 90% at 15% 10%, rgb(16 122 87 / 0.75), transparent 60%),
+      radial-gradient(ellipse 70% 90% at 15% 10%, rgb(var(--primary-600) / 0.75), transparent 60%),
       radial-gradient(ellipse 60% 80% at 85% 90%, rgb(217 119 6 / 0.35), transparent 60%),
       radial-gradient(ellipse 90% 60% at 60% 30%, rgb(255 255 255 / 0.06), transparent 65%),
-      linear-gradient(160deg, #123f31 0%, #0b2a21 100%);
+      linear-gradient(160deg, rgb(var(--primary-800)) 0%, rgb(var(--primary-950)) 100%);
   }
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);

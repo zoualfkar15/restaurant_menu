@@ -22,7 +22,7 @@ function CardSkeleton() {
 export function AboutPageSkeleton() {
   return (
     <div className="menu-bg min-h-screen pb-12" aria-busy="true" aria-live="polite">
-      <div className="h-[250px] animate-pulse rounded-b-[32px] bg-stone-300/70 sm:h-[280px] lg:h-[320px] lg:rounded-b-[40px]" />
+      <div className="hero-fallback h-[250px] animate-pulse rounded-b-[32px] sm:h-[280px] lg:h-[320px] lg:rounded-b-[40px]" />
       <div className="relative z-10 mx-3 -mt-7 sm:mx-4 lg:mx-auto lg:-mt-10 lg:max-w-[1100px] lg:px-8">
         <div className="rounded-[28px] bg-white px-4 pb-6 pt-5 shadow-menu-lg ring-1 ring-menu-border/80 sm:px-6 lg:rounded-[32px] lg:px-8 lg:pb-10 lg:pt-8">
           <div className="flex flex-col gap-3 md:flex-row">
@@ -56,7 +56,7 @@ export function AboutPageSkeleton() {
 export function MenuPageSkeleton() {
   return (
     <div className="menu-bg min-h-screen pb-12" aria-busy="true" aria-live="polite">
-      <div className="h-[250px] animate-pulse rounded-b-[32px] bg-stone-300/70 sm:h-[280px] lg:h-[320px] lg:rounded-b-[40px]" />
+      <div className="hero-fallback h-[250px] animate-pulse rounded-b-[32px] sm:h-[280px] lg:h-[320px] lg:rounded-b-[40px]" />
       <div className="relative z-10 mx-3 -mt-7 sm:mx-4 lg:mx-auto lg:-mt-10 lg:max-w-[1400px] lg:px-8">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:gap-8">
           <div className="rounded-[28px] bg-white px-4 pb-6 pt-6 shadow-menu-lg ring-1 ring-menu-border/80 sm:px-6 lg:rounded-[32px] lg:px-8">

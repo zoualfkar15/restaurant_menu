@@ -5,6 +5,7 @@ import { LocaleProvider, useLocale } from '@/lib/locale';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCart } from '@/hooks/useCart';
 import { MenuPageSkeleton } from '@/components/Skeleton';
+import RestaurantTheme from '@/components/RestaurantTheme';
 import RestaurantHero from '@/components/menu/RestaurantHero';
 import SearchBar from '@/components/menu/SearchBar';
 import CategoryTabs, { ALL_CATEGORIES } from '@/components/menu/CategoryTabs';
@@ -120,7 +121,13 @@ export default function MenuPage() {
     };
   }, [slug]);
 
-  if (loading) return <MenuPageSkeleton />;
+  if (loading) {
+    return (
+      <RestaurantTheme loading>
+        <MenuPageSkeleton />
+      </RestaurantTheme>
+    );
+  }
   if (notFound || !restaurant) {
     return (
       <div className="menu-bg font-menu flex min-h-screen items-center justify-center px-6 text-center">
@@ -140,8 +147,10 @@ export default function MenuPage() {
   const currency = restaurant.currency === 'TRY' ? 'TRY' : restaurant.currency === 'SYP' ? 'SYP' : 'USD';
 
   return (
-    <LocaleProvider defaultLocale={defaultLocale} enabledLocales={enabledLocales} currency={currency}>
-      <MenuContent restaurant={restaurant} />
-    </LocaleProvider>
+    <RestaurantTheme color={restaurant.primaryColor}>
+      <LocaleProvider defaultLocale={defaultLocale} enabledLocales={enabledLocales} currency={currency}>
+        <MenuContent restaurant={restaurant} />
+      </LocaleProvider>
+    </RestaurantTheme>
   );
 }
