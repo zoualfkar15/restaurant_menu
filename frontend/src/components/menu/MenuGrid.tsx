@@ -1,7 +1,7 @@
 import { memo } from 'react';
-import AppImage from '@/components/AppImage';
 import { useLocale } from '@/lib/locale';
 import type { MenuCategory, MenuProduct } from '@/types/menu';
+import CategoryPhoto, { categoryPhotoSrc } from './CategoryPhoto';
 import MenuItemCard from './MenuItemCard';
 import { SearchIcon } from './icons';
 
@@ -53,11 +53,11 @@ function MenuGrid({ sections, restaurantSlug, showHeadings, onReset }: MenuGridP
           <section key={category.id} id={`category-${category.slug}`} aria-labelledby={showHeadings ? `heading-${category.slug}` : undefined}>
             {showHeadings && (
               <div className="mb-3 flex items-center gap-3">
-                {category.image && (
-                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl ring-1 ring-menu-border">
-                    <AppImage src={category.image} alt="" className="h-full w-full object-cover" width={40} height={40} />
-                  </div>
-                )}
+                <CategoryPhoto
+                  src={categoryPhotoSrc(category)}
+                  alt=""
+                  className="h-10 w-10 shrink-0 rounded-xl ring-1 ring-menu-border/80"
+                />
                 <h2 id={`heading-${category.slug}`} className="text-lg font-extrabold text-menu-ink sm:text-xl">
                   {localize(category.name, category.nameAr)}
                 </h2>

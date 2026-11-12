@@ -246,6 +246,18 @@ export function LayersIcon(props: IconProps) {
   );
 }
 
+/** 2×2 tiles — “all categories” in the public menu chips. */
+export function GridIcon(props: IconProps) {
+  return (
+    <svg {...base({ strokeWidth: 1.8, ...props })}>
+      <rect x="3.5" y="3.5" width="7.25" height="7.25" rx="1.6" />
+      <rect x="13.25" y="3.5" width="7.25" height="7.25" rx="1.6" />
+      <rect x="3.5" y="13.25" width="7.25" height="7.25" rx="1.6" />
+      <rect x="13.25" y="13.25" width="7.25" height="7.25" rx="1.6" />
+    </svg>
+  );
+}
+
 export function CheckIcon(props: IconProps) {
   return (
     <svg {...base({ strokeWidth: 2.5, ...props })}>

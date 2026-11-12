@@ -61,9 +61,12 @@ export function MenuPageSkeleton() {
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:gap-8">
           <div className="rounded-[28px] bg-white px-4 pb-6 pt-6 shadow-menu-lg ring-1 ring-menu-border/80 sm:px-6 lg:rounded-[32px] lg:px-8">
             <Skeleton className="h-12 w-full rounded-2xl" />
-            <div className="mt-3 flex gap-2 overflow-hidden">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-10 w-24 shrink-0 rounded-full" />
+            <div className="mt-3 flex gap-3 overflow-hidden">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex w-[4.65rem] shrink-0 flex-col items-center gap-1.5">
+                  <Skeleton className="h-[3.85rem] w-[3.85rem] rounded-[1.35rem]" />
+                  <Skeleton className="h-2.5 w-10 rounded-full" />
+                </div>
               ))}
             </div>
             <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
