@@ -20,6 +20,7 @@ const subscriptions_module_1 = require("./subscriptions/subscriptions.module");
 const platform_module_1 = require("./platform/platform.module");
 const analytics_module_1 = require("./analytics/analytics.module");
 const admin_module_1 = require("./admin/admin.module");
+const catalog_cache_module_1 = require("./catalog-cache/catalog-cache.module");
 const health_controller_1 = require("./health.controller");
 let AppModule = class AppModule {
 };
@@ -35,6 +36,7 @@ exports.AppModule = AppModule = __decorate([
                 { name: 'long', ttl: 3600000, limit: 500 },
             ]),
             prisma_module_1.PrismaModule,
+            catalog_cache_module_1.CatalogCacheModule,
             auth_module_1.AuthModule,
             restaurants_module_1.RestaurantsModule,
             categories_module_1.CategoriesModule,

@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RestaurantsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const catalog_cache_service_1 = require("../catalog-cache/catalog-cache.service");
 const catalogInclude = {
     categories: {
         orderBy: { sortOrder: 'asc' },
@@ -24,8 +25,9 @@ const catalogInclude = {
     },
 };
 let RestaurantsService = class RestaurantsService {
-    constructor(prisma) {
+    constructor(prisma, catalogCache) {
         this.prisma = prisma;
+        this.catalogCache = catalogCache;
     }
     async findBySlug(slug) {
         return this.getCatalogBySlug(slug);
@@ -67,12 +69,21 @@ let RestaurantsService = class RestaurantsService {
             payload.logo = null;
         if (payload.coverImage === '')
             payload.coverImage = null;
-        return this.prisma.restaurant.update({ where: { id }, data: payload });
+        const before = await this.prisma.restaurant.findUnique({
+            where: { id },
+            select: { slug: true },
+        });
+        const updated = await this.prisma.restaurant.update({ where: { id }, data: payload });
+        await this.catalogCache.invalidateSlug(before?.slug);
+        if (updated.slug !== before?.slug)
+            await this.catalogCache.invalidateSlug(updated.slug);
+        return updated;
     }
 };
 exports.RestaurantsService = RestaurantsService;
 exports.RestaurantsService = RestaurantsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        catalog_cache_service_1.CatalogCacheService])
 ], RestaurantsService);
 //# sourceMappingURL=restaurants.service.js.map

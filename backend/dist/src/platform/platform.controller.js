@@ -23,6 +23,7 @@ const restaurants_service_1 = require("../restaurants/restaurants.service");
 const subscriptions_service_1 = require("../subscriptions/subscriptions.service");
 const analytics_service_1 = require("../analytics/analytics.service");
 const prisma_service_1 = require("../prisma/prisma.service");
+const catalog_cache_service_1 = require("../catalog-cache/catalog-cache.service");
 const client_2 = require("@prisma/client");
 function slugify(text) {
     return text
@@ -33,11 +34,12 @@ function slugify(text) {
         .replace(/^-|-$/g, '');
 }
 let PlatformController = class PlatformController {
-    constructor(prisma, restaurants, subscriptions, analytics) {
+    constructor(prisma, restaurants, subscriptions, analytics, catalogCache) {
         this.prisma = prisma;
         this.restaurants = restaurants;
         this.subscriptions = subscriptions;
         this.analytics = analytics;
+        this.catalogCache = catalogCache;
     }
     async listRestaurants(skip = 0, take = 20) {
         const [data, total] = await Promise.all([
@@ -101,7 +103,11 @@ let PlatformController = class PlatformController {
         });
         if (!existing)
             throw new common_1.NotFoundException('Restaurant not found');
-        return this.prisma.restaurant.update({ where: { id }, data: body });
+        const updated = await this.prisma.restaurant.update({ where: { id }, data: body });
+        await this.catalogCache.invalidateSlug(existing.slug);
+        if (updated.slug !== existing.slug)
+            await this.catalogCache.invalidateSlug(updated.slug);
+        return updated;
     }
     async deleteRestaurant(id) {
         const existing = await this.prisma.restaurant.findUnique({
@@ -110,6 +116,7 @@ let PlatformController = class PlatformController {
         });
         if (!existing)
             throw new common_1.NotFoundException('Restaurant not found');
+        await this.catalogCache.invalidateSlug(existing.slug);
         return this.prisma.restaurant.delete({ where: { id } });
     }
     async listSubscriptions(skip = 0, take = 50) {
@@ -199,6 +206,7 @@ exports.PlatformController = PlatformController = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         restaurants_service_1.RestaurantsService,
         subscriptions_service_1.SubscriptionsService,
-        analytics_service_1.AnalyticsService])
+        analytics_service_1.AnalyticsService,
+        catalog_cache_service_1.CatalogCacheService])
 ], PlatformController);
 //# sourceMappingURL=platform.controller.js.map

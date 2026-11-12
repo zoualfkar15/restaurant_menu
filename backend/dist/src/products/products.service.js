@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const catalog_cache_service_1 = require("../catalog-cache/catalog-cache.service");
 function slugify(text) {
     return text
         .toLowerCase()
@@ -21,8 +22,9 @@ function slugify(text) {
         .replace(/^-|-$/g, '');
 }
 let ProductsService = class ProductsService {
-    constructor(prisma) {
+    constructor(prisma, catalogCache) {
         this.prisma = prisma;
+        this.catalogCache = catalogCache;
     }
     async create(restaurantId, dto) {
         const slug = slugify(dto.name);
@@ -32,7 +34,7 @@ let ProductsService = class ProductsService {
             select: { sortOrder: true },
         });
         const sortOrder = dto.sortOrder ?? (maxOrder?.sortOrder ?? 0) + 1;
-        return this.prisma.product.create({
+        const product = await this.prisma.product.create({
             data: {
                 restaurantId,
                 categoryId: dto.categoryId,
@@ -51,6 +53,8 @@ let ProductsService = class ProductsService {
                 allergens: dto.allergens,
             },
         });
+        await this.catalogCache.invalidateRestaurant(restaurantId);
+        return product;
     }
     async findAll(restaurantId, categoryId) {
         const where = { restaurantId };
@@ -88,26 +92,32 @@ let ProductsService = class ProductsService {
     async update(id, restaurantId, dto) {
         await this.findOne(id, restaurantId);
         const slug = dto.name ? slugify(dto.name) : undefined;
-        return this.prisma.product.update({
+        const product = await this.prisma.product.update({
             where: { id },
             data: { ...dto, slug },
         });
+        await this.catalogCache.invalidateRestaurant(restaurantId);
+        return product;
     }
     async remove(id, restaurantId) {
         await this.findOne(id, restaurantId);
-        return this.prisma.product.delete({ where: { id } });
+        const product = await this.prisma.product.delete({ where: { id } });
+        await this.catalogCache.invalidateRestaurant(restaurantId);
+        return product;
     }
     async reorder(restaurantId, order) {
         await Promise.all(order.map(({ id, sortOrder }) => this.prisma.product.updateMany({
             where: { id, restaurantId },
             data: { sortOrder },
         })));
+        await this.catalogCache.invalidateRestaurant(restaurantId);
         return this.findAll(restaurantId);
     }
 };
 exports.ProductsService = ProductsService;
 exports.ProductsService = ProductsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        catalog_cache_service_1.CatalogCacheService])
 ], ProductsService);
 //# sourceMappingURL=products.service.js.map

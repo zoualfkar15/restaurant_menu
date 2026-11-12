@@ -1,9 +1,11 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 export declare class ProductsService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private catalogCache;
+    constructor(prisma: PrismaService, catalogCache: CatalogCacheService);
     create(restaurantId: string, dto: CreateProductDto): Promise<{
         id: string;
         name: string;

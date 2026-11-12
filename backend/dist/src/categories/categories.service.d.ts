@@ -1,10 +1,12 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Prisma } from '@prisma/client';
 export declare class CategoriesService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private catalogCache;
+    constructor(prisma: PrismaService, catalogCache: CatalogCacheService);
     create(restaurantId: string, dto: CreateCategoryDto): Promise<{
         id: string;
         name: string;

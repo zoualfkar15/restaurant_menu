@@ -19,6 +19,7 @@ import { RestaurantsService } from '../restaurants/restaurants.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
 import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
 
 function slugify(text: string): string {
@@ -39,6 +40,7 @@ export class PlatformController {
     private restaurants: RestaurantsService,
     private subscriptions: SubscriptionsService,
     private analytics: AnalyticsService,
+    private catalogCache: CatalogCacheService,
   ) {}
 
   @Get('restaurants')
@@ -115,7 +117,10 @@ export class PlatformController {
       select: { slug: true },
     });
     if (!existing) throw new NotFoundException('Restaurant not found');
-    return this.prisma.restaurant.update({ where: { id }, data: body });
+    const updated = await this.prisma.restaurant.update({ where: { id }, data: body });
+    await this.catalogCache.invalidateSlug(existing.slug);
+    if (updated.slug !== existing.slug) await this.catalogCache.invalidateSlug(updated.slug);
+    return updated;
   }
 
   @Delete('restaurants/:id')
@@ -125,6 +130,7 @@ export class PlatformController {
       select: { slug: true },
     });
     if (!existing) throw new NotFoundException('Restaurant not found');
+    await this.catalogCache.invalidateSlug(existing.slug);
     return this.prisma.restaurant.delete({ where: { id } });
   }
 

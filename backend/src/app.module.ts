@@ -11,6 +11,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { PlatformModule } from './platform/platform.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AdminModule } from './admin/admin.module';
+import { CatalogCacheModule } from './catalog-cache/catalog-cache.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -23,6 +24,7 @@ import { HealthController } from './health.controller';
       { name: 'long', ttl: 3600000, limit: 500 },
     ]),
     PrismaModule,
+    CatalogCacheModule,
     AuthModule,
     RestaurantsModule,
     CategoriesModule,

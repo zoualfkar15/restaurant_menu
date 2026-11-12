@@ -1,0 +1,14 @@
+{
+  "name": "menuqr",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-11-12",
+  "vars": {
+    "API_ORIGIN": "https://restaurant-menu-lzkb.onrender.com"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "MENU_CACHE",
+      "id": "76af164a13f84dd09efddf701553e5f1"
+    }
+  ]
+}

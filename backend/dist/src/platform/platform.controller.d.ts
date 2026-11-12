@@ -2,13 +2,15 @@ import { RestaurantsService } from '../restaurants/restaurants.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
 import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
 export declare class PlatformController {
     private prisma;
     private restaurants;
     private subscriptions;
     private analytics;
-    constructor(prisma: PrismaService, restaurants: RestaurantsService, subscriptions: SubscriptionsService, analytics: AnalyticsService);
+    private catalogCache;
+    constructor(prisma: PrismaService, restaurants: RestaurantsService, subscriptions: SubscriptionsService, analytics: AnalyticsService, catalogCache: CatalogCacheService);
     listRestaurants(skip?: number, take?: number): Promise<{
         data: ({
             subscriptions: {

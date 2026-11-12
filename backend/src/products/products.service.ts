@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
@@ -14,7 +15,10 @@ function slugify(text: string): string {
 
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private catalogCache: CatalogCacheService,
+  ) {}
 
   async create(restaurantId: string, dto: CreateProductDto) {
     const slug = slugify(dto.name);
@@ -24,7 +28,7 @@ export class ProductsService {
       select: { sortOrder: true },
     });
     const sortOrder = dto.sortOrder ?? (maxOrder?.sortOrder ?? 0) + 1;
-    return this.prisma.product.create({
+    const product = await this.prisma.product.create({
       data: {
         restaurantId,
         categoryId: dto.categoryId,
@@ -43,6 +47,8 @@ export class ProductsService {
         allergens: dto.allergens,
       },
     });
+    await this.catalogCache.invalidateRestaurant(restaurantId);
+    return product;
   }
 
   async findAll(restaurantId: string, categoryId?: string) {
@@ -80,15 +86,19 @@ export class ProductsService {
   async update(id: string, restaurantId: string, dto: UpdateProductDto) {
     await this.findOne(id, restaurantId);
     const slug = dto.name ? slugify(dto.name) : undefined;
-    return this.prisma.product.update({
+    const product = await this.prisma.product.update({
       where: { id },
       data: { ...dto, slug },
     });
+    await this.catalogCache.invalidateRestaurant(restaurantId);
+    return product;
   }
 
   async remove(id: string, restaurantId: string) {
     await this.findOne(id, restaurantId);
-    return this.prisma.product.delete({ where: { id } });
+    const product = await this.prisma.product.delete({ where: { id } });
+    await this.catalogCache.invalidateRestaurant(restaurantId);
+    return product;
   }
 
   async reorder(restaurantId: string, order: { id: string; sortOrder: number }[]) {
@@ -100,6 +110,7 @@ export class ProductsService {
         }),
       ),
     );
+    await this.catalogCache.invalidateRestaurant(restaurantId);
     return this.findAll(restaurantId);
   }
 }

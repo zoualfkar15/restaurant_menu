@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
 
 /** Single Prisma include: restaurant + categories + available products. */
 const catalogInclude = {
@@ -17,7 +18,10 @@ const catalogInclude = {
 
 @Injectable()
 export class RestaurantsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private catalogCache: CatalogCacheService,
+  ) {}
 
   async findBySlug(slug: string) {
     return this.getCatalogBySlug(slug);
@@ -62,6 +66,13 @@ export class RestaurantsService {
     if (payload.primaryColor === '') payload.primaryColor = null;
     if (payload.logo === '') payload.logo = null;
     if (payload.coverImage === '') payload.coverImage = null;
-    return this.prisma.restaurant.update({ where: { id }, data: payload });
+    const before = await this.prisma.restaurant.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
+    const updated = await this.prisma.restaurant.update({ where: { id }, data: payload });
+    await this.catalogCache.invalidateSlug(before?.slug);
+    if (updated.slug !== before?.slug) await this.catalogCache.invalidateSlug(updated.slug);
+    return updated;
   }
 }

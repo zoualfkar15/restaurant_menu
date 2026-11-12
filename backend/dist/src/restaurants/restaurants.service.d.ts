@@ -1,8 +1,10 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
 export declare class RestaurantsService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private catalogCache;
+    constructor(prisma: PrismaService, catalogCache: CatalogCacheService);
     findBySlug(slug: string): Promise<{
         categories: ({
             products: {
