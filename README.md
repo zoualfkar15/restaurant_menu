@@ -78,6 +78,34 @@ npm run dev           # http://localhost:3000
 
 - `VITE_API_URL` — API origin with no trailing slash (e.g. `http://localhost:3001`). Required at **build time** on Vercel.
 
+## Deploy on Railway (frontend + API, one service)
+
+The Dockerfile serves the Vite app and the Nest API from **one URL** (no CORS, `VITE_API_URL` not needed). Postgres stays on Aiven.
+
+Railway: **$5 trial credit** (30 days, no card), then a Free plan with **$1/month** of usage — enough for a small demo, not 24/7.
+
+1. Push this repo to GitHub.
+2. Open [railway.com/new](https://railway.com/new) → **Deploy from GitHub repo** → `zoualfkar15/restaurant_menu`.
+3. After the service appears, open **Variables** and set:
+
+   | Key | Value |
+   |---|---|
+   | `DATABASE_URL` | Aiven Service URI (`?sslmode=require`) |
+   | `JWT_ACCESS_SECRET` | 32+ random characters |
+   | `JWT_REFRESH_SECRET` | 32+ random characters |
+   | `FRONTEND_URL` | your `https://….up.railway.app` URL (set after first deploy, then redeploy) |
+
+4. Wait for the deploy. Open the public URL — the site and `/api/health` should both work.
+
+Optional seed from your laptop:
+
+```bash
+cd backend
+DATABASE_URL='your-aiven-uri' npm run prisma:seed
+```
+
+The same Dockerfile also works on **Koyeb** (one free web service; sleeps after ~1 hour idle).
+
 ## Deploy on Render (frontend + API)
 
 Hobby ($0): one **Static Site** for the Vite app and one **Free Web Service** for NestJS. Postgres stays on Aiven.

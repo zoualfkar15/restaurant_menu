@@ -60,7 +60,9 @@ export class AdminController {
   async getQr(@CurrentUser() user: JwtPayload) {
     if (!user.restaurantId) throw new ForbiddenException('No restaurant assigned to your account');
     const restaurant = await this.restaurants.getById(user.restaurantId, user.restaurantId);
-    const baseUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    const baseUrl =
+      this.config.get<string>('FRONTEND_URL') ||
+      (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : 'http://localhost:3000');
     const menuUrl = `${baseUrl}/restaurant/${restaurant.slug}/menu`;
     // QR image can be generated client-side or via a library; return URL for client to render
     return { url: menuUrl, slug: restaurant.slug };

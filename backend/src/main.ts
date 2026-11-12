@@ -1,8 +1,10 @@
+import { existsSync } from 'fs';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AppModule } from './app.module';
+import { SpaFallbackFilter } from './spa-fallback.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -22,6 +24,9 @@ async function bootstrap() {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    allowedOrigins.push(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+  }
   const allowVercelPreviews = process.env.CORS_ALLOW_VERCEL_PREVIEWS === 'true';
 
   app.enableCors({
@@ -49,9 +54,15 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const port = process.env.PORT || 3001;
-  await app.listen(port);
-  console.log(`MenuQR API running on http://localhost:${port}/api`);
+  const clientDir = process.env.CLIENT_DIR || join(process.cwd(), 'public');
+  if (existsSync(join(clientDir, 'index.html'))) {
+    app.useStaticAssets(clientDir);
+    app.useGlobalFilters(new SpaFallbackFilter(clientDir));
+  }
+
+  const port = Number(process.env.PORT) || 3001;
+  await app.listen(port, '0.0.0.0');
+  console.log(`MenuQR API running on http://0.0.0.0:${port}/api`);
 }
 
 bootstrap();

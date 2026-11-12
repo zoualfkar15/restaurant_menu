@@ -1,0 +1,12 @@
+.git
+.cursor
+**/node_modules
+**/dist
+**/.env
+**/uploads
+frontend/dist
+backend/dist
+backend/uploads
+delivery
+*.md
+agent-transcripts
