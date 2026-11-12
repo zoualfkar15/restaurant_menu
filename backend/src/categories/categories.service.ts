@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../redis/redis.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Prisma } from '@prisma/client';
@@ -16,14 +15,7 @@ function slugify(text: string): string {
 
 @Injectable()
 export class CategoriesService {
-  constructor(
-    private prisma: PrismaService,
-    private redis: RedisService,
-  ) {}
-
-  private async bustCatalog(restaurantId: string) {
-    await this.redis.invalidateRestaurant(restaurantId);
-  }
+  constructor(private prisma: PrismaService) {}
 
   async create(restaurantId: string, dto: CreateCategoryDto) {
     const slug = slugify(dto.name);
@@ -34,7 +26,7 @@ export class CategoriesService {
     });
     const sortOrder = dto.sortOrder ?? (maxOrder?.sortOrder ?? 0) + 1;
     try {
-      const category = await this.prisma.category.create({
+      return await this.prisma.category.create({
         data: {
           restaurantId,
           name: dto.name,
@@ -44,8 +36,6 @@ export class CategoriesService {
           ...(dto.nameAr != null && dto.nameAr !== '' && { nameAr: dto.nameAr }),
         },
       });
-      await this.bustCatalog(restaurantId);
-      return category;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002') throw new ConflictException('A category with this name already exists');
@@ -75,19 +65,15 @@ export class CategoriesService {
   async update(id: string, restaurantId: string, dto: UpdateCategoryDto) {
     await this.findOne(id, restaurantId);
     const slug = dto.name ? slugify(dto.name) : undefined;
-    const category = await this.prisma.category.update({
+    return this.prisma.category.update({
       where: { id },
       data: { ...dto, slug },
     });
-    await this.bustCatalog(restaurantId);
-    return category;
   }
 
   async remove(id: string, restaurantId: string) {
     await this.findOne(id, restaurantId);
-    const category = await this.prisma.category.delete({ where: { id } });
-    await this.bustCatalog(restaurantId);
-    return category;
+    return this.prisma.category.delete({ where: { id } });
   }
 
   async reorder(restaurantId: string, order: { id: string; sortOrder: number }[]) {
@@ -99,7 +85,6 @@ export class CategoriesService {
         }),
       ),
     );
-    await this.bustCatalog(restaurantId);
     return this.findAll(restaurantId);
   }
 }

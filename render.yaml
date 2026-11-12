@@ -1,0 +1,60 @@
+# Render Hobby ($0): static frontend + free web service API.
+# Dashboard → New → Blueprint → this repo.
+# Before the first deploy, set DATABASE_URL on menuqr-api to your Aiven URI
+# (append ?sslmode=require if it is missing).
+
+services:
+  - type: web
+    name: menuqr-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npx prisma migrate deploy && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_EXPIRY
+        value: 7d
+      - key: UPLOAD_DRIVER
+        value: local
+      - key: CORS_ORIGIN
+        fromService:
+          name: menuqr-web
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: FRONTEND_URL
+        fromService:
+          name: menuqr-web
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  - type: web
+    name: menuqr-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: VITE_API_URL
+        fromService:
+          name: menuqr-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL

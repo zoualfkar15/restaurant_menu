@@ -19,7 +19,6 @@ import { RestaurantsService } from '../restaurants/restaurants.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../redis/redis.service';
 import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
 
 function slugify(text: string): string {
@@ -40,7 +39,6 @@ export class PlatformController {
     private restaurants: RestaurantsService,
     private subscriptions: SubscriptionsService,
     private analytics: AnalyticsService,
-    private redis: RedisService,
   ) {}
 
   @Get('restaurants')
@@ -117,9 +115,7 @@ export class PlatformController {
       select: { slug: true },
     });
     if (!existing) throw new NotFoundException('Restaurant not found');
-    const restaurant = await this.prisma.restaurant.update({ where: { id }, data: body });
-    await this.redis.invalidateRestaurant(id, [existing.slug, restaurant.slug]);
-    return restaurant;
+    return this.prisma.restaurant.update({ where: { id }, data: body });
   }
 
   @Delete('restaurants/:id')
@@ -129,7 +125,6 @@ export class PlatformController {
       select: { slug: true },
     });
     if (!existing) throw new NotFoundException('Restaurant not found');
-    await this.redis.invalidateRestaurant(id, [existing.slug]);
     return this.prisma.restaurant.delete({ where: { id } });
   }
 

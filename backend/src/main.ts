@@ -18,8 +18,34 @@ async function bootstrap() {
     }),
   );
 
+  const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const allowVercelPreviews = process.env.CORS_ALLOW_VERCEL_PREVIEWS === 'true';
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        callback(null, true);
+        return;
+      }
+      if (allowVercelPreviews) {
+        try {
+          if (new URL(origin).hostname.endsWith('.vercel.app')) {
+            callback(null, true);
+            return;
+          }
+        } catch {
+          /* ignore invalid Origin */
+        }
+      }
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
   });
 

@@ -76,7 +76,7 @@ export async function register(name: string, email: string, password: string) {
 
 const inflightCatalog = new Map<string, Promise<unknown>>();
 
-/** Restaurant + categories + products from the Redis-backed catalog endpoint. */
+/** Restaurant + categories + products in one request. */
 export async function getCatalog(slug: string) {
   const existing = inflightCatalog.get(slug);
   if (existing) return existing;

@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../redis/redis.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
@@ -15,14 +14,7 @@ function slugify(text: string): string {
 
 @Injectable()
 export class ProductsService {
-  constructor(
-    private prisma: PrismaService,
-    private redis: RedisService,
-  ) {}
-
-  private async bustCatalog(restaurantId: string) {
-    await this.redis.invalidateRestaurant(restaurantId);
-  }
+  constructor(private prisma: PrismaService) {}
 
   async create(restaurantId: string, dto: CreateProductDto) {
     const slug = slugify(dto.name);
@@ -32,7 +24,7 @@ export class ProductsService {
       select: { sortOrder: true },
     });
     const sortOrder = dto.sortOrder ?? (maxOrder?.sortOrder ?? 0) + 1;
-    const product = await this.prisma.product.create({
+    return this.prisma.product.create({
       data: {
         restaurantId,
         categoryId: dto.categoryId,
@@ -51,8 +43,6 @@ export class ProductsService {
         allergens: dto.allergens,
       },
     });
-    await this.bustCatalog(restaurantId);
-    return product;
   }
 
   async findAll(restaurantId: string, categoryId?: string) {
@@ -90,19 +80,15 @@ export class ProductsService {
   async update(id: string, restaurantId: string, dto: UpdateProductDto) {
     await this.findOne(id, restaurantId);
     const slug = dto.name ? slugify(dto.name) : undefined;
-    const product = await this.prisma.product.update({
+    return this.prisma.product.update({
       where: { id },
       data: { ...dto, slug },
     });
-    await this.bustCatalog(restaurantId);
-    return product;
   }
 
   async remove(id: string, restaurantId: string) {
     await this.findOne(id, restaurantId);
-    const product = await this.prisma.product.delete({ where: { id } });
-    await this.bustCatalog(restaurantId);
-    return product;
+    return this.prisma.product.delete({ where: { id } });
   }
 
   async reorder(restaurantId: string, order: { id: string; sortOrder: number }[]) {
@@ -114,7 +100,6 @@ export class ProductsService {
         }),
       ),
     );
-    await this.bustCatalog(restaurantId);
     return this.findAll(restaurantId);
   }
 }

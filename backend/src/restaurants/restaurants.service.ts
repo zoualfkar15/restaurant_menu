@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../redis/redis.service';
 import { Prisma } from '@prisma/client';
 
 /** Single Prisma include: restaurant + categories + available products. */
@@ -18,10 +17,7 @@ const catalogInclude = {
 
 @Injectable()
 export class RestaurantsService {
-  constructor(
-    private prisma: PrismaService,
-    private redis: RedisService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async findBySlug(slug: string) {
     return this.getCatalogBySlug(slug);
@@ -39,23 +35,14 @@ export class RestaurantsService {
     return this.getCatalogBySlug(slug);
   }
 
-  /**
-   * Public catalog: restaurant info, categories, and products in one query.
-   * Cached in Redis with no TTL; mutations call `invalidateCatalog`.
-   */
+  /** Public catalog: restaurant info, categories, and products in one query. */
   async getCatalogBySlug(slug: string) {
-    const cached = await this.redis.getCatalog(slug);
-    if (cached) return cached;
-
     const restaurant = await this.prisma.restaurant.findFirst({
       where: { slug, isActive: true },
       include: catalogInclude,
     });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
-
-    const payload = JSON.parse(JSON.stringify(restaurant));
-    await this.redis.setCatalog(restaurant.slug, restaurant.id, payload);
-    return payload;
+    return restaurant;
   }
 
   async getById(id: string, restaurantId?: string) {
@@ -67,16 +54,6 @@ export class RestaurantsService {
   }
 
   async update(id: string, data: Prisma.RestaurantUpdateInput) {
-    const existing = await this.prisma.restaurant.findUnique({
-      where: { id },
-      select: { slug: true },
-    });
-    const restaurant = await this.prisma.restaurant.update({ where: { id }, data });
-    await this.redis.invalidateRestaurant(id, [existing?.slug, restaurant.slug].filter(Boolean) as string[]);
-    return restaurant;
-  }
-
-  async invalidateCatalog(restaurantId: string) {
-    await this.redis.invalidateRestaurant(restaurantId);
+    return this.prisma.restaurant.update({ where: { id }, data });
   }
 }
