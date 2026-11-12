@@ -1,0 +1,2 @@
+# SPA fallback so QR/menu deep links serve index.html on Cloudflare Pages.
+/*    /index.html   200
