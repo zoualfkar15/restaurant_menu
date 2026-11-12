@@ -20,38 +20,40 @@ async function bootstrap() {
     }),
   );
 
-  const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
-    .split(',')
-    .map((origin) => origin.trim())
+  const allowedOrigins = [process.env.CORS_ORIGIN, process.env.FRONTEND_URL, 'http://localhost:3000']
+    .filter(Boolean)
+    .flatMap((value) => value!.split(','))
+    .map((origin) => origin.trim().replace(/\/$/, ''))
     .filter(Boolean);
   if (process.env.RAILWAY_PUBLIC_DOMAIN) {
     allowedOrigins.push(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
   }
   const allowVercelPreviews = process.env.CORS_ALLOW_VERCEL_PREVIEWS === 'true';
 
+  const originAllowed = (origin: string) => {
+    const normalized = origin.replace(/\/$/, '');
+    if (allowedOrigins.includes(normalized) || allowedOrigins.includes('*')) return true;
+    try {
+      const host = new URL(normalized).hostname;
+      if (host.endsWith('.onrender.com')) return true;
+      if (allowVercelPreviews && host.endsWith('.vercel.app')) return true;
+    } catch {
+      return false;
+    }
+    return false;
+  };
+
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin) {
+      if (!origin || originAllowed(origin)) {
         callback(null, true);
         return;
       }
-      if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-        callback(null, true);
-        return;
-      }
-      if (allowVercelPreviews) {
-        try {
-          if (new URL(origin).hostname.endsWith('.vercel.app')) {
-            callback(null, true);
-            return;
-          }
-        } catch {
-          /* ignore invalid Origin */
-        }
-      }
-      callback(new Error(`CORS blocked for origin: ${origin}`));
+      callback(null, false);
     },
     credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   const clientDir = process.env.CLIENT_DIR || join(process.cwd(), 'public');
