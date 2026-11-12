@@ -21,17 +21,17 @@ export default function QRPage() {
     }).catch(() => setQr(null));
   }, []);
 
-  if (!qr) return <div className="p-4">{t('dashboard.loading')}</div>;
+  if (!qr) return <p className="font-semibold text-menu-ink-muted">{t('dashboard.loading')}</p>;
 
   return (
     <div className="max-w-lg">
-      <h1 className="text-2xl font-bold mb-2">{t('qr.title')}</h1>
-      <p className="text-slate-600 mb-6">{t('qr.subtitle')}</p>
-      <div className="rounded-2xl bg-white border border-slate-200 shadow-lg p-6 inline-block">
-        {qrError && <p className="text-sm text-red-600 mb-2">{qrError}</p>}
-        {dataUrl ? <img src={dataUrl} alt={t('qr.alt')} width={256} height={256} className="block" /> : !qrError && qr?.url ? <div className="w-64 h-64 flex items-center justify-center text-slate-400">{t('dashboard.loading')}</div> : null}
+      <h1 className="text-2xl font-extrabold text-menu-ink">{t('qr.title')}</h1>
+      <p className="mb-6 mt-2 text-menu-ink-muted">{t('qr.subtitle')}</p>
+      <div className="inline-block rounded-[22px] bg-menu-surface-elevated p-6 shadow-menu-md ring-1 ring-menu-border">
+        {qrError && <p className="mb-2 text-sm font-semibold text-red-700">{qrError}</p>}
+        {dataUrl ? <img src={dataUrl} alt={t('qr.alt')} width={256} height={256} className="block" /> : !qrError && qr?.url ? <div className="flex h-64 w-64 items-center justify-center font-semibold text-menu-ink-muted">{t('dashboard.loading')}</div> : null}
       </div>
-      {qr?.url && (<><p className="mt-4 font-mono text-sm break-all">{qr.url}</p><p className="mt-2 text-sm text-slate-600">{t('qr.printHint')}</p></>)}
+      {qr?.url && (<><p className="mt-4 break-all font-mono text-sm text-menu-ink">{qr.url}</p><p className="mt-2 text-sm text-menu-ink-muted">{t('qr.printHint')}</p></>)}
     </div>
   );
 }

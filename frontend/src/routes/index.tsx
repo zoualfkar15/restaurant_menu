@@ -29,7 +29,7 @@ const ProductPage = lazy(() => import('@/pages/restaurant/ProductPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 function PageLoader({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Spinner className="w-8 h-8 text-brand-500" /></div>}>{children}</Suspense>;
+  return <Suspense fallback={<div className="menu-bg flex min-h-screen items-center justify-center"><Spinner className="h-8 w-8 text-primary-600" /></div>}>{children}</Suspense>;
 }
 
 function RootWrapper({ children }: { children: React.ReactNode }) {

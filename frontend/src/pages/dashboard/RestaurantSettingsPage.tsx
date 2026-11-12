@@ -3,6 +3,7 @@ import { authFetch } from '@/services/api';
 import { useLocale } from '@/lib/locale';
 import Spinner from '@/components/Spinner';
 import MapPicker from '@/components/MapPicker';
+import { FormError, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from '@/components/SiteForm';
 
 const OPENING_HOURS_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 const OPENING_HOURS_DAY_KEYS: Record<(typeof OPENING_HOURS_DAYS)[number], string> = {
@@ -109,25 +110,23 @@ export default function RestaurantSettingsPage() {
     finally { setSaving(false); }
   }
 
-  const inputClass = 'w-full border border-slate-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-brand-500';
-  const labelClass = 'block text-sm font-medium text-slate-800 mb-1';
-
   return (
-    <div ref={formTopRef} className="max-w-xl p-6 rounded-2xl bg-white shadow border border-slate-200">
-      <h1 className="text-2xl font-bold mb-6">{t('restaurant.landingTitle')}</h1>
+    <div ref={formTopRef} className="max-w-xl rounded-[28px] bg-menu-surface-elevated p-6 shadow-menu-lg ring-1 ring-menu-border/80 sm:p-8">
+      <h1 className="mb-6 text-2xl font-extrabold text-menu-ink">{t('restaurant.landingTitle')}</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {message && <p className={`text-sm px-3 py-2 rounded-lg ${messageType === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`}>{message}</p>}
+        {messageType === 'success' && message && <p className="rounded-2xl bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-800 ring-1 ring-primary-100">{message}</p>}
+        {messageType === 'error' && <FormError>{message}</FormError>}
         <div><label className={labelClass}>{t('restaurant.nameEn')}</label><input value={form.name ?? ''} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className={inputClass} /></div>
         <div><label className={labelClass}>{t('restaurant.nameAr')}</label><input value={form.nameAr ?? ''} onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))} className={inputClass} dir="rtl" /></div>
         <div><label className={labelClass}>{t('restaurant.descriptionEn')}</label><textarea value={form.description ?? ''} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className={inputClass} rows={3} /></div>
         <div><label className={labelClass}>{t('restaurant.descriptionAr')}</label><textarea value={form.descriptionAr ?? ''} onChange={(e) => setForm((f) => ({ ...f, descriptionAr: e.target.value }))} className={inputClass} rows={3} dir="rtl" /></div>
-        <div className="rounded-xl border border-slate-200 p-4 space-y-4 bg-slate-50">
-          <h2 className="font-semibold">{t('restaurant.languageCurrency')}</h2>
+        <div className="space-y-4 rounded-[22px] bg-menu-surface p-4 ring-1 ring-menu-border">
+          <h2 className="font-extrabold text-menu-ink">{t('restaurant.languageCurrency')}</h2>
           <div><label className={labelClass}>{t('restaurant.currency')}</label><select value={form.currency ?? 'USD'} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value as 'USD' | 'TRY' | 'SYP' }))} className={inputClass}><option value="USD">USD ($)</option><option value="TRY">TRY (₺)</option><option value="SYP">SYP (£S)</option></select></div>
           <div><label className={labelClass}>{t('restaurant.defaultLanguage')}</label><select value={form.defaultLocale ?? 'ar'} onChange={(e) => setForm((f) => ({ ...f, defaultLocale: e.target.value as 'en' | 'ar' }))} className={inputClass}><option value="ar">{t('restaurant.arabic')}</option><option value="en">{t('restaurant.english')}</option></select></div>
         </div>
-        <div className="rounded-xl border border-slate-200 p-4 space-y-3 bg-slate-50">
-          <h2 className="font-semibold">{t('restaurant.openingHoursSection')}</h2>
+        <div className="space-y-3 rounded-[22px] bg-menu-surface p-4 ring-1 ring-menu-border">
+          <h2 className="font-extrabold text-menu-ink">{t('restaurant.openingHoursSection')}</h2>
           {OPENING_HOURS_DAYS.map((day) => (
             <div key={day} className="flex items-center gap-3">
               <label className={`${labelClass} w-28 shrink-0 mb-0`}>{t(OPENING_HOURS_DAY_KEYS[day])}</label>
@@ -146,10 +145,10 @@ export default function RestaurantSettingsPage() {
           <label className={labelClass}>{t('restaurant.searchLocation')}</label>
           <div className="flex gap-2">
             <input type="text" value={locationQuery} onChange={(e) => { setLocationQuery(e.target.value); setLocationError(''); }} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleLocationSearch())} className={inputClass} placeholder={t('restaurant.searchPlaceholder')} />
-            <button type="button" onClick={handleLocationSearch} disabled={locationSearching} className="shrink-0 px-4 py-2.5 rounded-lg bg-brand-500 text-white font-medium disabled:opacity-50">{locationSearching ? '...' : t('restaurant.searchButton')}</button>
+            <button type="button" onClick={handleLocationSearch} disabled={locationSearching} className={`${primaryButtonClass} shrink-0 px-4`}>{locationSearching ? '...' : t('restaurant.searchButton')}</button>
           </div>
-          {locationError && <p className="text-sm text-red-600 mt-1">{locationError}</p>}
-          <button type="button" onClick={handleCurrentLocation} disabled={gettingLocation} className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 font-medium disabled:opacity-50">📍 {gettingLocation ? '...' : t('restaurant.currentLocation')}</button>
+          {locationError && <p className="mt-1 text-sm font-semibold text-red-700">{locationError}</p>}
+          <button type="button" onClick={handleCurrentLocation} disabled={gettingLocation} className={`${secondaryButtonClass} mt-2 min-h-[44px] px-4`}>📍 {gettingLocation ? '...' : t('restaurant.currentLocation')}</button>
         </div>
         <MapPicker
           latitude={form.latitude != null ? Number(form.latitude) : null}
@@ -160,7 +159,7 @@ export default function RestaurantSettingsPage() {
           loadingText={t('restaurant.loadingMap')}
         />
         <div><label className={labelClass}>{t('restaurant.whatsapp')}</label><input value={form.whatsapp ?? ''} onChange={(e) => setForm((f) => ({ ...f, whatsapp: e.target.value }))} className={inputClass} placeholder="+49..." /></div>
-        <button type="submit" disabled={saving} className="inline-flex items-center gap-2 bg-brand-500 text-white px-6 py-2.5 rounded-lg font-medium disabled:opacity-50">{saving && <Spinner />}{saving ? t('menu.saving') : t('menu.save')}</button>
+        <button type="submit" disabled={saving} className={primaryButtonClass}>{saving && <Spinner />}{saving ? t('menu.saving') : t('menu.save')}</button>
       </form>
     </div>
   );

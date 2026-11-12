@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { authFetch } from '@/services/api';
 import { useLocale } from '@/lib/locale';
 import Spinner from '@/components/Spinner';
+import { FormError, inputClass, labelClass, primaryButtonClass } from '@/components/SiteForm';
 
 export default function DashboardPage() {
   const { t } = useLocale();
@@ -70,18 +71,18 @@ export default function DashboardPage() {
 
   if (needsOnboarding) {
     return (
-      <div className="max-w-md text-slate-900">
-        <h1 className="text-2xl font-bold mb-2">{t('dashboard.setupTitle')}</h1>
-        <p className="text-slate-600 mb-6">{t('dashboard.setupSubtitle')}</p>
+      <div className="max-w-md rounded-[28px] bg-menu-surface-elevated p-6 shadow-menu-lg ring-1 ring-menu-border/80 sm:p-8">
+        <h1 className="text-2xl font-extrabold text-menu-ink">{t('dashboard.setupTitle')}</h1>
+        <p className="mt-2 mb-6 text-menu-ink-muted">{t('dashboard.setupSubtitle')}</p>
         <form onSubmit={handleOnboarding} className="space-y-4">
-          {onboardingSuccess && <p className="text-sm px-3 py-2 rounded-lg bg-emerald-100 text-emerald-800">{onboardingSuccess}</p>}
-          {onboardingError && <p className="text-sm px-3 py-2 rounded-lg bg-red-100 text-red-700">{onboardingError}</p>}
+          {onboardingSuccess && <p className="rounded-2xl bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-800 ring-1 ring-primary-100">{onboardingSuccess}</p>}
+          <FormError>{onboardingError}</FormError>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">{t('dashboard.restaurantName')}</label>
-            <input value={onboardingName} onChange={(e) => setOnboardingName(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white" required minLength={2} />
+            <label htmlFor="onboarding-name" className={labelClass}>{t('dashboard.restaurantName')}</label>
+            <input id="onboarding-name" value={onboardingName} onChange={(e) => setOnboardingName(e.target.value)} className={inputClass} required minLength={2} />
           </div>
-          <button type="submit" disabled={onboardingSubmitting} className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 disabled:opacity-50">
-            {onboardingSubmitting && <Spinner className="w-4 h-4" />}
+          <button type="submit" disabled={onboardingSubmitting} className={primaryButtonClass}>
+            {onboardingSubmitting && <Spinner className="h-4 w-4" />}
             {onboardingSubmitting ? t('dashboard.creating') : t('dashboard.createRestaurant')}
           </button>
         </form>
@@ -89,8 +90,15 @@ export default function DashboardPage() {
     );
   }
 
-  if (error) return <div className="p-4"><p className="text-red-600">{error}</p><Link to="/login" className="mt-4 inline-block text-brand-500 hover:underline">{t('dashboard.goToLogin')}</Link></div>;
-  if (!restaurant) return <div className="p-4">{t('dashboard.loading')}</div>;
+  if (error) {
+    return (
+      <div>
+        <FormError>{error}</FormError>
+        <Link to="/login" className="mt-4 inline-block text-sm font-bold text-primary-700 hover:text-primary-800">{t('dashboard.goToLogin')}</Link>
+      </div>
+    );
+  }
+  if (!restaurant) return <p className="font-semibold text-menu-ink-muted">{t('dashboard.loading')}</p>;
 
   const cards = [
     { label: t('dashboard.menuItems'), value: stats?.menuItems ?? '—', href: '/dashboard/menu' },
@@ -101,21 +109,21 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {onboardingSuccess && <p className="mb-4 text-sm px-3 py-2 rounded-lg bg-emerald-100 text-emerald-800">{onboardingSuccess}</p>}
-      <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
-      <p className="text-slate-600 mt-1">{restaurant.name}</p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
+      {onboardingSuccess && <p className="mb-4 rounded-2xl bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-800 ring-1 ring-primary-100">{onboardingSuccess}</p>}
+      <h1 className="text-2xl font-extrabold text-menu-ink">{t('dashboard.title')}</h1>
+      <p className="mt-1 text-menu-ink-muted">{restaurant.name}</p>
+      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         {cards.map((c) => (
-          <div key={c.label} className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-sm text-slate-500">{c.label}</p>
-            <p className="text-2xl font-bold mt-1">{c.value}</p>
-            {c.href && <Link to={c.href} className="text-sm text-brand-500 mt-2 inline-block hover:underline">{t('dashboard.view')}</Link>}
+          <div key={c.label} className="rounded-[22px] bg-menu-surface-elevated p-4 shadow-menu-sm ring-1 ring-menu-border sm:p-5">
+            <p className="text-sm font-semibold text-menu-ink-muted">{c.label}</p>
+            <p className="mt-1 text-2xl font-extrabold text-menu-ink">{c.value}</p>
+            {c.href && <Link to={c.href} className="mt-2 inline-block text-sm font-bold text-primary-700 hover:text-primary-800">{t('dashboard.view')}</Link>}
           </div>
         ))}
       </div>
-      <div className="mt-8 flex gap-4">
-        <Link to={`/restaurant/${restaurant.slug}/menu`} target="_blank" className="text-brand-500 hover:underline">{t('dashboard.openMenu')}</Link>
-        <Link to="/dashboard/menu" className="bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600">{t('dashboard.editMenu')}</Link>
+      <div className="mt-8 flex flex-wrap items-center gap-3">
+        <Link to={`/restaurant/${restaurant.slug}/menu`} target="_blank" className="text-sm font-bold text-primary-700 hover:text-primary-800">{t('dashboard.openMenu')}</Link>
+        <Link to="/dashboard/menu" className={primaryButtonClass}>{t('dashboard.editMenu')}</Link>
       </div>
     </div>
   );

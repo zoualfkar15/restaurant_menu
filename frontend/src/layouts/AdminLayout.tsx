@@ -1,6 +1,14 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { BrandMark } from '@/components/SiteHeader';
+import { useLocale } from '@/lib/locale';
+
+const navClass = ({ isActive }: { isActive: boolean }) =>
+  `block rounded-xl px-3 py-2.5 text-[15px] font-semibold transition-colors ${
+    isActive ? 'bg-primary-50 text-primary-800' : 'text-menu-ink-secondary hover:bg-menu-surface-muted hover:text-menu-ink'
+  }`;
 
 export default function AdminLayout() {
+  const { dir } = useLocale();
   const navigate = useNavigate();
 
   const logout = () => {
@@ -10,22 +18,39 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      <aside className="w-56 bg-slate-900 text-white shrink-0 flex flex-col">
-        <div className="p-4 border-b border-slate-700">
-          <Link to="/admin" className="font-bold">MenuQR Admin</Link>
+    <div dir={dir} className="menu-bg font-menu flex min-h-screen text-menu-ink antialiased">
+      <aside className="flex w-56 shrink-0 flex-col border-e border-menu-border bg-menu-surface-elevated">
+        <div className="border-b border-menu-border px-4 py-4">
+          <BrandMark />
+          <p className="mt-1 text-xs font-bold uppercase tracking-wide text-menu-ink-muted">Admin</p>
         </div>
-        <nav className="p-2 space-y-1 flex-1">
-          <Link to="/admin" className="block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800">Overview</Link>
-          <Link to="/admin/restaurants" className="block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800">Restaurants</Link>
-          <Link to="/admin/subscriptions" className="block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800">Subscriptions</Link>
+        <nav className="flex-1 space-y-1 p-3">
+          <NavLink to="/admin" end className={navClass}>
+            Overview
+          </NavLink>
+          <NavLink to="/admin/restaurants" className={navClass}>
+            Restaurants
+          </NavLink>
+          <NavLink to="/admin/subscriptions" className={navClass}>
+            Subscriptions
+          </NavLink>
         </nav>
-        <div className="p-2 border-t border-slate-700">
-          <Link to="/dashboard" className="block px-3 py-2 text-sm text-slate-400 hover:text-white">→ Restaurant dashboard</Link>
-          <button type="button" onClick={logout} className="block w-full text-left px-3 py-2 text-sm text-slate-400 hover:text-white">Log out</button>
+        <div className="space-y-1 border-t border-menu-border p-3">
+          <Link to="/dashboard" className="block rounded-xl px-3 py-2 text-sm font-semibold text-menu-ink-muted hover:bg-menu-surface-muted hover:text-menu-ink">
+            → Restaurant dashboard
+          </Link>
+          <button
+            type="button"
+            onClick={logout}
+            className="block w-full rounded-xl px-3 py-2 text-start text-sm font-semibold text-menu-ink-muted hover:bg-menu-surface-muted hover:text-menu-ink"
+          >
+            Log out
+          </button>
         </div>
       </aside>
-      <main className="flex-1 p-6 overflow-auto page-enter"><Outlet /></main>
+      <main className="flex-1 overflow-auto p-6 page-enter lg:p-8">
+        <Outlet />
+      </main>
     </div>
   );
 }

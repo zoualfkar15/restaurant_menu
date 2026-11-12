@@ -4,6 +4,7 @@ import { authFetch, authUploadFile } from '@/services/api';
 import { useLocale } from '@/lib/locale';
 import Spinner from '@/components/Spinner';
 import AppImage from '@/components/AppImage';
+import { FormError, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from '@/components/SiteForm';
 
 export default function EditCategoryPage() {
   const { t } = useLocale();
@@ -57,26 +58,26 @@ export default function EditCategoryPage() {
     }
   }
 
-  if (loading) return <div className="p-4">{t('dashboard.loading')}</div>;
+  if (loading) return <p className="font-semibold text-menu-ink-muted">{t('dashboard.loading')}</p>;
 
   return (
-    <div>
-      <Link to="/dashboard/menu" className="text-sm text-slate-500 hover:underline mb-4 inline-block">← {t('dashboard.menu')}</Link>
-      <h1 className="text-2xl font-bold mb-6">{t('menu.editCategory')}</h1>
-      <form onSubmit={handleSubmit} className="max-w-md space-y-4">
-        {success && <p className="text-sm px-3 py-2 rounded-lg bg-emerald-100 text-emerald-800">{success}</p>}
-        {error && <p className="text-sm px-3 py-2 rounded-lg bg-red-100 text-red-700">{error}</p>}
-        <div><label className="block text-sm font-medium mb-1">{t('menu.nameEn')}</label><input value={name} onChange={(e) => setName(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white" required /></div>
-        <div><label className="block text-sm font-medium mb-1">{t('menu.nameAr')}</label><input value={nameAr} onChange={(e) => setNameAr(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white" dir="rtl" /></div>
+    <div className="max-w-md rounded-[28px] bg-menu-surface-elevated p-6 shadow-menu-lg ring-1 ring-menu-border/80 sm:p-8">
+      <Link to="/dashboard/menu" className="mb-4 inline-block text-sm font-bold text-primary-700 hover:text-primary-800">← {t('dashboard.menu')}</Link>
+      <h1 className="mb-6 text-2xl font-extrabold text-menu-ink">{t('menu.editCategory')}</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {success && <p className="rounded-2xl bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-800 ring-1 ring-primary-100">{success}</p>}
+        <FormError>{error}</FormError>
+        <div><label className={labelClass}>{t('menu.nameEn')}</label><input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required /></div>
+        <div><label className={labelClass}>{t('menu.nameAr')}</label><input value={nameAr} onChange={(e) => setNameAr(e.target.value)} className={inputClass} dir="rtl" /></div>
         <div>
-          <label className="block text-sm font-medium mb-1">{t('menu.imageOptional')}</label>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm" />
-          {uploading && <p className="text-sm text-slate-500 mt-1">{t('menu.uploading')}</p>}
-          {image && <div className="mt-2 w-24 h-24 rounded-lg overflow-hidden"><AppImage src={image} alt="" className="w-full h-full object-cover" width={96} height={96} /></div>}
+          <label className={labelClass}>{t('menu.imageOptional')}</label>
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-menu-ink-muted" />
+          {uploading && <p className="mt-1 text-sm font-medium text-menu-ink-muted">{t('menu.uploading')}</p>}
+          {image && <div className="mt-2 h-24 w-24 overflow-hidden rounded-2xl ring-1 ring-menu-border"><AppImage src={image} alt="" className="h-full w-full object-cover" width={96} height={96} /></div>}
         </div>
-        <div className="flex gap-3">
-          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50">{saving && <Spinner />}{saving ? t('menu.saving') : t('menu.save')}</button>
-          <Link to="/dashboard/menu" className="border border-slate-300 px-4 py-2 rounded-lg">{t('menu.cancel')}</Link>
+        <div className="flex flex-wrap gap-3">
+          <button type="submit" disabled={saving} className={primaryButtonClass}>{saving && <Spinner />}{saving ? t('menu.saving') : t('menu.save')}</button>
+          <Link to="/dashboard/menu" className={secondaryButtonClass}>{t('menu.cancel')}</Link>
         </div>
       </form>
     </div>
