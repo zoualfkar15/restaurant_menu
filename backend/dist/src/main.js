@@ -33,6 +33,8 @@ async function bootstrap() {
             const host = new URL(normalized).hostname;
             if (host.endsWith('.onrender.com'))
                 return true;
+            if (host.endsWith('.pages.dev'))
+                return true;
             if (allowVercelPreviews && host.endsWith('.vercel.app'))
                 return true;
         }
