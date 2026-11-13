@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useLocale } from '@/lib/locale';
 import { BrandMark } from '@/components/SiteHeader';
 import { CloseIcon, MenuIcon } from '@/components/menu/icons';
+import { DashboardThemeContext } from '@/lib/dashboardTheme';
+import { parseHexColor, restaurantThemeStyle } from '@/lib/restaurantTheme';
+import { authFetch } from '@/services/api';
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   `block rounded-xl px-3 py-2.5 text-[15px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
@@ -13,7 +17,23 @@ export default function DashboardLayout() {
   const { t, locale, setLocale, dir } = useLocale();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState<string | null>(null);
   const close = () => setSidebarOpen(false);
+  const themeApi = useMemo(() => ({ setPrimaryColor }), []);
+  const themeStyle = restaurantThemeStyle({ color: primaryColor }) as CSSProperties | undefined;
+
+  useEffect(() => {
+    let cancelled = false;
+    authFetch('/admin/restaurant')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { primaryColor?: string | null } | null) => {
+        if (!cancelled && data) setPrimaryColor(parseHexColor(data.primaryColor));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const logout = () => {
     localStorage.removeItem('accessToken');
@@ -22,7 +42,8 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div dir={dir} className="menu-bg font-menu flex min-h-screen text-menu-ink antialiased">
+    <DashboardThemeContext.Provider value={themeApi}>
+      <div dir={dir} className="menu-bg font-menu flex min-h-screen text-menu-ink antialiased" style={themeStyle}>
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-menu-ink/30 backdrop-blur-[2px] md:hidden" onClick={close} aria-hidden />
       )}
@@ -102,6 +123,7 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
-    </div>
+      </div>
+    </DashboardThemeContext.Provider>
   );
 }

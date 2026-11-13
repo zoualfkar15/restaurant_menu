@@ -116,7 +116,7 @@ export const translations: Record<string, { en: string; ar: string }> = {
   'restaurant.logo': { en: 'Restaurant logo', ar: 'شعار المطعم' },
   'restaurant.cover': { en: 'Cover photo', ar: 'صورة الغلاف' },
   'restaurant.primaryColor': { en: 'Menu color', ar: 'لون القائمة' },
-  'restaurant.primaryColorHint': { en: 'Shown on buttons and highlights. Leave default if you do not pick a color.', ar: 'يظهر على الأزرار والتمييز. اترك الافتراضي إذا لم تختر لوناً.' },
+  'restaurant.primaryColorHint': { en: 'Used on your public page and dashboard. Leave default if you do not pick a color.', ar: 'يظهر على صفحتك العامة ولوحة التحكم. اترك الافتراضي إذا لم تختر لوناً.' },
   'restaurant.useDefaultColor': { en: 'Use default green', ar: 'استخدم الأخضر الافتراضي' },
   'restaurant.removeImage': { en: 'Remove', ar: 'إزالة' },
   'restaurant.nameEn': { en: 'Restaurant name (English)', ar: 'اسم المطعم (إنجليزي)' },

@@ -5,6 +5,7 @@ import Spinner from '@/components/Spinner';
 import MapPicker from '@/components/MapPicker';
 import AppImage from '@/components/AppImage';
 import { FormError, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from '@/components/SiteForm';
+import { useDashboardTheme } from '@/lib/dashboardTheme';
 import { DEFAULT_PRIMARY_HEX, parseHexColor } from '@/lib/restaurantTheme';
 
 const OPENING_HOURS_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
@@ -35,6 +36,8 @@ async function searchLocation(query: string) {
 
 export default function RestaurantSettingsPage() {
   const { t } = useLocale();
+  const { setPrimaryColor } = useDashboardTheme();
+  const savedColorRef = useRef<string | null>(null);
   const [form, setForm] = useState<Restaurant>({});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -53,6 +56,9 @@ export default function RestaurantSettingsPage() {
     authFetch('/admin/restaurant').then((r) => r.ok ? r.json() : null).then((data: Restaurant | null) => {
       if (!data) return;
       const hours = data.openingHours && typeof data.openingHours === 'object' ? data.openingHours : {};
+      const color = parseHexColor(data.primaryColor);
+      savedColorRef.current = color;
+      setPrimaryColor(color);
       setForm({
         ...data,
         latitude: data.latitude != null ? Number(data.latitude) : undefined,
@@ -64,10 +70,11 @@ export default function RestaurantSettingsPage() {
         openingHours: hours,
         logo: data.logo ?? null,
         coverImage: data.coverImage ?? null,
-        primaryColor: parseHexColor(data.primaryColor),
+        primaryColor: color,
       });
     });
-  }, []);
+    return () => setPrimaryColor(savedColorRef.current);
+  }, [setPrimaryColor]);
 
   useEffect(() => { if (message) formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [message]);
 
@@ -133,7 +140,13 @@ export default function RestaurantSettingsPage() {
     }
     try {
       const res = await authFetch('/admin/restaurant', { method: 'PUT', body: JSON.stringify(payload) });
-      if (res.ok) { setMessage(t('restaurant.saved')); setMessageType('success'); }
+      if (res.ok) {
+        const nextColor = parseHexColor(typeof payload.primaryColor === 'string' ? payload.primaryColor : null);
+        savedColorRef.current = nextColor;
+        setPrimaryColor(nextColor);
+        setMessage(t('restaurant.saved'));
+        setMessageType('success');
+      }
       else { setMessage((await res.json().catch(() => ({}))).message || t('restaurant.failedSave')); setMessageType('error'); }
     } catch { setMessage(t('restaurant.failedSave')); setMessageType('error'); }
     finally { setSaving(false); }
@@ -185,12 +198,23 @@ export default function RestaurantSettingsPage() {
                 id="primary-color"
                 type="color"
                 value={parseHexColor(form.primaryColor) ?? DEFAULT_PRIMARY_HEX}
-                onChange={(e) => setForm((f) => ({ ...f, primaryColor: e.target.value }))}
+                onChange={(e) => {
+                  const color = parseHexColor(e.target.value);
+                  setForm((f) => ({ ...f, primaryColor: color }));
+                  setPrimaryColor(color);
+                }}
                 className="h-12 w-16 cursor-pointer rounded-xl border-0 bg-transparent p-1"
               />
               <span className="font-mono text-sm font-semibold text-menu-ink" dir="ltr">{parseHexColor(form.primaryColor) ?? DEFAULT_PRIMARY_HEX}</span>
               {form.primaryColor && (
-                <button type="button" className={`${secondaryButtonClass} min-h-[44px] px-4`} onClick={() => setForm((f) => ({ ...f, primaryColor: null }))}>
+                <button
+                  type="button"
+                  className={`${secondaryButtonClass} min-h-[44px] px-4`}
+                  onClick={() => {
+                    setForm((f) => ({ ...f, primaryColor: null }));
+                    setPrimaryColor(null);
+                  }}
+                >
                   {t('restaurant.useDefaultColor')}
                 </button>
               )}
