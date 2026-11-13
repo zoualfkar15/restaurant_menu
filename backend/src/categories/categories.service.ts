@@ -3,16 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { slugify } from '../common/slugify';
 import { Prisma } from '@prisma/client';
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
 
 @Injectable()
 export class CategoriesService {
@@ -22,7 +14,7 @@ export class CategoriesService {
   ) {}
 
   async create(restaurantId: string, dto: CreateCategoryDto) {
-    const slug = slugify(dto.name);
+    const slug = slugify(dto.nameAr || dto.name, 'category');
     const maxOrder = await this.prisma.category.findFirst({
       where: { restaurantId },
       orderBy: { sortOrder: 'desc' },
@@ -70,7 +62,7 @@ export class CategoriesService {
 
   async update(id: string, restaurantId: string, dto: UpdateCategoryDto) {
     await this.findOne(id, restaurantId);
-    const slug = dto.name ? slugify(dto.name) : undefined;
+    const slug = dto.name || dto.nameAr ? slugify(dto.nameAr || dto.name || '', 'category') : undefined;
     const category = await this.prisma.category.update({
       where: { id },
       data: { ...dto, slug },

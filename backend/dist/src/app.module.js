@@ -21,6 +21,7 @@ const platform_module_1 = require("./platform/platform.module");
 const analytics_module_1 = require("./analytics/analytics.module");
 const admin_module_1 = require("./admin/admin.module");
 const catalog_cache_module_1 = require("./catalog-cache/catalog-cache.module");
+const contact_module_1 = require("./contact/contact.module");
 const health_controller_1 = require("./health.controller");
 let AppModule = class AppModule {
 };
@@ -46,6 +47,7 @@ exports.AppModule = AppModule = __decorate([
             platform_module_1.PlatformModule,
             analytics_module_1.AnalyticsModule,
             admin_module_1.AdminModule,
+            contact_module_1.ContactModule,
         ],
     })
 ], AppModule);

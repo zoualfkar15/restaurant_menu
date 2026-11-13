@@ -27,14 +27,7 @@ const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../prisma/prisma.service");
 const auth_service_1 = require("../auth/auth.service");
 const client_2 = require("@prisma/client");
-function slugify(text) {
-    return text
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-}
+const slugify_1 = require("../common/slugify");
 let AdminController = class AdminController {
     constructor(restaurants, analytics, config, prisma, auth) {
         this.restaurants = restaurants;
@@ -73,7 +66,7 @@ let AdminController = class AdminController {
         const name = body?.name?.trim();
         if (!name || name.length < 2)
             throw new common_1.BadRequestException('Restaurant name is required (at least 2 characters)');
-        let slug = slugify(name);
+        let slug = (0, slugify_1.slugify)(name, 'restaurant');
         const existing = await this.prisma.restaurant.findUnique({ where: { slug } });
         if (existing)
             slug = `${slug}-${Date.now().toString(36)}`;

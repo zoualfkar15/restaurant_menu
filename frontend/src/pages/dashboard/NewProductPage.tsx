@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { authFetch, authUploadFile } from '@/services/api';
+import { authFetch } from '@/services/api';
 import { useLocale } from '@/lib/locale';
+import { useImageField } from '@/hooks/useImageField';
 import Spinner from '@/components/Spinner';
 import AppImage from '@/components/AppImage';
 import { FormError, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from '@/components/SiteForm';
@@ -13,7 +14,7 @@ export default function NewProductPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedCategoryId = searchParams.get('categoryId') || '';
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { fileInputRef, url: image, uploading, onFileChange, waitForImage } = useImageField();
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState('');
   const [nameAr, setNameAr] = useState('');
@@ -21,11 +22,9 @@ export default function NewProductPage() {
   const [descriptionAr, setDescriptionAr] = useState('');
   const [price, setPrice] = useState('');
   const [categoryId, setCategoryId] = useState(preselectedCategoryId);
-  const [image, setImage] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
   const [isPopular, setIsPopular] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -38,10 +37,13 @@ export default function NewProductPage() {
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file?.type.startsWith('image/')) { setError(t('menu.pleaseSelectImage')); return; }
-    setUploading(true);
-    try { setImage((await authUploadFile(file)).url); } catch (err) { setError(err instanceof Error ? err.message : 'Upload failed'); }
-    finally { setUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+    if (file && !file.type.startsWith('image/')) { setError(t('menu.pleaseSelectImage')); return; }
+    setError('');
+    try {
+      await onFileChange(e);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -52,13 +54,16 @@ export default function NewProductPage() {
     setSaving(true);
     setError('');
     try {
-      const res = await authFetch('/admin/products', { method: 'POST', body: JSON.stringify({ name, nameAr: nameAr || undefined, description: description || undefined, descriptionAr: descriptionAr || undefined, price: numPrice, categoryId, image: image || undefined, isAvailable, isPopular }) });
+      const imageUrl = await waitForImage();
+      const res = await authFetch('/admin/products', { method: 'POST', body: JSON.stringify({ name, nameAr: nameAr || undefined, description: description || undefined, descriptionAr: descriptionAr || undefined, price: numPrice, categoryId, image: imageUrl || undefined, isAvailable, isPopular }) });
       if (!res.ok) { setError((await res.json().catch(() => ({}))).message || t('menu.failedCreate')); return; }
       setSuccess(t('menu.successCreate'));
       setTimeout(() => navigate('/dashboard/menu'), 1200);
     } catch { setError(t('menu.failedCreate')); }
     finally { setSaving(false); }
   }
+
+  const busy = saving || uploading;
 
   return (
     <div className="max-w-md rounded-[28px] bg-menu-surface-elevated p-6 shadow-menu-lg ring-1 ring-menu-border/80 sm:p-8">
@@ -75,7 +80,7 @@ export default function NewProductPage() {
         <div><label className={labelClass}>{t('menu.price')} *</label><input type="number" step="0.01" min="0" value={price} onChange={(e) => setPrice(e.target.value)} className={inputClass} required /></div>
         <div><label className={labelClass}>{t('menu.imageOptional')}</label><input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-menu-ink-muted" />{uploading && <p className="mt-1 text-sm font-medium text-menu-ink-muted">{t('menu.uploading')}</p>}{image && <div className="mt-2 h-24 w-24 overflow-hidden rounded-2xl ring-1 ring-menu-border"><AppImage src={image} alt="" className="h-full w-full object-cover" width={96} height={96} /></div>}</div>
         <div className="flex gap-4 text-sm font-semibold text-menu-ink"><label className="flex items-center gap-2"><input type="checkbox" checked={isAvailable} onChange={(e) => setIsAvailable(e.target.checked)} />{t('menu.available')}</label><label className="flex items-center gap-2"><input type="checkbox" checked={isPopular} onChange={(e) => setIsPopular(e.target.checked)} />{t('menu.popular')}</label></div>
-        <div className="flex flex-wrap gap-3"><button type="submit" disabled={saving} className={primaryButtonClass}>{saving && <Spinner />}{saving ? t('dashboard.creating') : t('menu.createProduct')}</button><Link to="/dashboard/menu" className={secondaryButtonClass}>{t('menu.cancel')}</Link></div>
+        <div className="flex flex-wrap gap-3"><button type="submit" disabled={busy} className={primaryButtonClass}>{busy && <Spinner />}{saving ? t('dashboard.creating') : uploading ? t('menu.uploading') : t('menu.createProduct')}</button><Link to="/dashboard/menu" className={secondaryButtonClass}>{t('menu.cancel')}</Link></div>
       </form>
     </div>
   );

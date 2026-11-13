@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authFetch, authUploadFile } from '@/services/api';
+import { authFetch } from '@/services/api';
 import { useLocale } from '@/lib/locale';
+import { useImageField } from '@/hooks/useImageField';
 import Spinner from '@/components/Spinner';
 import AppImage from '@/components/AppImage';
 import { FormError, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from '@/components/SiteForm';
@@ -9,28 +10,21 @@ import { FormError, inputClass, labelClass, primaryButtonClass, secondaryButtonC
 export default function NewCategoryPage() {
   const { t } = useLocale();
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { fileInputRef, url: image, uploading, onFileChange, waitForImage } = useImageField();
   const [name, setName] = useState('');
   const [nameAr, setNameAr] = useState('');
-  const [image, setImage] = useState('');
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file?.type.startsWith('image/')) { setError(t('menu.pleaseSelectImage')); return; }
+    if (file && !file.type.startsWith('image/')) { setError(t('menu.pleaseSelectImage')); return; }
     setError('');
-    setUploading(true);
     try {
-      const { url } = await authUploadFile(file);
-      setImage(url);
+      await onFileChange(e);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   }
 
@@ -40,7 +34,8 @@ export default function NewCategoryPage() {
     setError('');
     setSuccess('');
     try {
-      const res = await authFetch('/admin/categories', { method: 'POST', body: JSON.stringify({ name, nameAr: nameAr || undefined, image: image || undefined }) });
+      const imageUrl = await waitForImage();
+      const res = await authFetch('/admin/categories', { method: 'POST', body: JSON.stringify({ name, nameAr: nameAr || undefined, image: imageUrl || undefined }) });
       if (!res.ok) { setError((await res.json().catch(() => ({}))).message || t('menu.failedCreate')); return; }
       setSuccess(t('menu.successCreate'));
       setTimeout(() => navigate('/dashboard/menu'), 1200);
@@ -50,6 +45,8 @@ export default function NewCategoryPage() {
       setSaving(false);
     }
   }
+
+  const busy = saving || uploading;
 
   return (
     <div className="max-w-md rounded-[28px] bg-menu-surface-elevated p-6 shadow-menu-lg ring-1 ring-menu-border/80 sm:p-8">
@@ -67,7 +64,7 @@ export default function NewCategoryPage() {
           {image && <div className="mt-2 h-24 w-24 overflow-hidden rounded-2xl ring-1 ring-menu-border"><AppImage src={image} alt="" className="h-full w-full object-cover" width={96} height={96} /></div>}
         </div>
         <div className="flex flex-wrap gap-3">
-          <button type="submit" disabled={saving} className={primaryButtonClass}>{saving && <Spinner />}{saving ? t('dashboard.creating') : t('menu.createCategory')}</button>
+          <button type="submit" disabled={busy} className={primaryButtonClass}>{busy && <Spinner />}{saving ? t('dashboard.creating') : uploading ? t('menu.uploading') : t('menu.createCategory')}</button>
           <Link to="/dashboard/menu" className={secondaryButtonClass}>{t('menu.cancel')}</Link>
         </div>
       </form>

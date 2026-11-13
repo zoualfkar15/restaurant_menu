@@ -34,6 +34,9 @@ export default function AdminLayout() {
           <NavLink to="/admin/subscriptions" className={navClass}>
             Subscriptions
           </NavLink>
+          <NavLink to="/admin/contact" className={navClass}>
+            Contact
+          </NavLink>
         </nav>
         <div className="space-y-1 border-t border-menu-border p-3">
           <Link to="/dashboard" className="block rounded-xl px-3 py-2 text-sm font-semibold text-menu-ink-muted hover:bg-menu-surface-muted hover:text-menu-ink">

@@ -25,14 +25,7 @@ const analytics_service_1 = require("../analytics/analytics.service");
 const prisma_service_1 = require("../prisma/prisma.service");
 const catalog_cache_service_1 = require("../catalog-cache/catalog-cache.service");
 const client_2 = require("@prisma/client");
-function slugify(text) {
-    return text
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-}
+const slugify_1 = require("../common/slugify");
 let PlatformController = class PlatformController {
     constructor(prisma, restaurants, subscriptions, analytics, catalogCache) {
         this.prisma = prisma;
@@ -57,7 +50,7 @@ let PlatformController = class PlatformController {
         return { data, total, skip: Number(skip), take: Number(take) };
     }
     async createRestaurant(body) {
-        const slug = body.slug || slugify(body.name);
+        const slug = body.slug || (0, slugify_1.slugify)(body.name, 'restaurant');
         const exists = await this.prisma.restaurant.findUnique({ where: { slug } });
         if (exists)
             throw new Error('Slug already taken');
@@ -131,6 +124,17 @@ let PlatformController = class PlatformController {
     async analyticsOverview() {
         return this.analytics.getPlatformOverview();
     }
+    async listContactMessages(skip = 0, take = 50) {
+        const [data, total] = await Promise.all([
+            this.prisma.contactMessage.findMany({
+                skip: Number(skip),
+                take: Number(take),
+                orderBy: { createdAt: 'desc' },
+            }),
+            this.prisma.contactMessage.count(),
+        ]);
+        return { data, total, skip: Number(skip), take: Number(take) };
+    }
 };
 exports.PlatformController = PlatformController;
 __decorate([
@@ -199,6 +203,14 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], PlatformController.prototype, "analyticsOverview", null);
+__decorate([
+    (0, common_1.Get)('contact-messages'),
+    __param(0, (0, common_1.Query)('skip')),
+    __param(1, (0, common_1.Query)('take')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], PlatformController.prototype, "listContactMessages", null);
 exports.PlatformController = PlatformController = __decorate([
     (0, common_1.Controller)('platform'),
     (0, common_1.UseGuards)(throttler_1.ThrottlerGuard, jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

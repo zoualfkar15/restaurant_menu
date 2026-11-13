@@ -12,6 +12,7 @@ import { PlatformModule } from './platform/platform.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AdminModule } from './admin/admin.module';
 import { CatalogCacheModule } from './catalog-cache/catalog-cache.module';
+import { ContactModule } from './contact/contact.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -34,6 +35,7 @@ import { HealthController } from './health.controller';
     PlatformModule,
     AnalyticsModule,
     AdminModule,
+    ContactModule,
   ],
 })
 export class AppModule {}

@@ -13,22 +13,15 @@ exports.CategoriesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const catalog_cache_service_1 = require("../catalog-cache/catalog-cache.service");
+const slugify_1 = require("../common/slugify");
 const client_1 = require("@prisma/client");
-function slugify(text) {
-    return text
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-}
 let CategoriesService = class CategoriesService {
     constructor(prisma, catalogCache) {
         this.prisma = prisma;
         this.catalogCache = catalogCache;
     }
     async create(restaurantId, dto) {
-        const slug = slugify(dto.name);
+        const slug = (0, slugify_1.slugify)(dto.nameAr || dto.name, 'category');
         const maxOrder = await this.prisma.category.findFirst({
             where: { restaurantId },
             orderBy: { sortOrder: 'desc' },
@@ -77,7 +70,7 @@ let CategoriesService = class CategoriesService {
     }
     async update(id, restaurantId, dto) {
         await this.findOne(id, restaurantId);
-        const slug = dto.name ? slugify(dto.name) : undefined;
+        const slug = dto.name || dto.nameAr ? (0, slugify_1.slugify)(dto.nameAr || dto.name || '', 'category') : undefined;
         const category = await this.prisma.category.update({
             where: { id },
             data: { ...dto, slug },

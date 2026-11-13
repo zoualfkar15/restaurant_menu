@@ -1,17 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
+import { slugify } from '../common/slugify';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
 
 @Injectable()
 export class ProductsService {
@@ -21,7 +13,7 @@ export class ProductsService {
   ) {}
 
   async create(restaurantId: string, dto: CreateProductDto) {
-    const slug = slugify(dto.name);
+    const slug = slugify(dto.nameAr || dto.name, 'product');
     const maxOrder = await this.prisma.product.findFirst({
       where: { categoryId: dto.categoryId },
       orderBy: { sortOrder: 'desc' },
@@ -38,7 +30,7 @@ export class ProductsService {
         descriptionAr: dto.descriptionAr,
         nameAr: dto.nameAr,
         price: dto.price,
-        image: dto.image,
+        image: dto.image?.trim() || null,
         isAvailable: dto.isAvailable ?? true,
         isPopular: dto.isPopular ?? false,
         sortOrder,
@@ -85,7 +77,7 @@ export class ProductsService {
 
   async update(id: string, restaurantId: string, dto: UpdateProductDto) {
     await this.findOne(id, restaurantId);
-    const slug = dto.name ? slugify(dto.name) : undefined;
+    const slug = dto.name || dto.nameAr ? slugify(dto.nameAr || dto.name || '', 'product') : undefined;
     const product = await this.prisma.product.update({
       where: { id },
       data: { ...dto, slug },

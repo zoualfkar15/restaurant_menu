@@ -39,7 +39,7 @@ function CategoryTabs({ categories, active, onChange, className = '' }: Category
   return (
     <div
       ref={listRef}
-      className={`no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 pt-0.5 sm:mx-0 sm:px-0 ${className}`}
+      className={`no-scrollbar -mx-4 mt-[2px] flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 pt-2 sm:mx-0 sm:px-0 ${className}`}
       role="group"
       aria-label={t('public.categories')}
     >

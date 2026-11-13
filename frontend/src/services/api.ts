@@ -102,3 +102,12 @@ export async function getProduct(restaurantSlug: string, productSlug: string) {
   if (!res.ok) return null;
   return res.json();
 }
+
+export async function submitContact(payload: { name: string; email: string; phone: string; message: string }) {
+  const res = await fetch(apiUrl('/contact'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return { res, data: await res.json().catch(() => ({})) };
+}

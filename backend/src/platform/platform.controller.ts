@@ -21,15 +21,7 @@ import { AnalyticsService } from '../analytics/analytics.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CatalogCacheService } from '../catalog-cache/catalog-cache.service';
 import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+import { slugify } from '../common/slugify';
 
 @Controller('platform')
 @UseGuards(ThrottlerGuard, JwtAuthGuard, RolesGuard)
@@ -67,7 +59,7 @@ export class PlatformController {
   async createRestaurant(
     @Body() body: { name: string; slug?: string; description?: string },
   ) {
-    const slug = body.slug || slugify(body.name);
+    const slug = body.slug || slugify(body.name, 'restaurant');
     const exists = await this.prisma.restaurant.findUnique({ where: { slug } });
     if (exists) throw new Error('Slug already taken');
     const restaurant = await this.prisma.restaurant.create({
@@ -158,5 +150,21 @@ export class PlatformController {
   @Get('analytics/overview')
   async analyticsOverview() {
     return this.analytics.getPlatformOverview();
+  }
+
+  @Get('contact-messages')
+  async listContactMessages(
+    @Query('skip') skip = 0,
+    @Query('take') take = 50,
+  ) {
+    const [data, total] = await Promise.all([
+      this.prisma.contactMessage.findMany({
+        skip: Number(skip),
+        take: Number(take),
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.contactMessage.count(),
+    ]);
+    return { data, total, skip: Number(skip), take: Number(take) };
   }
 }

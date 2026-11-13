@@ -23,6 +23,7 @@ const QRPage = lazy(() => import('@/pages/dashboard/QRPage'));
 const AdminOverviewPage = lazy(() => import('@/pages/admin/OverviewPage'));
 const AdminRestaurantsPage = lazy(() => import('@/pages/admin/RestaurantsPage'));
 const AdminSubscriptionsPage = lazy(() => import('@/pages/admin/SubscriptionsPage'));
+const AdminContactMessagesPage = lazy(() => import('@/pages/admin/ContactMessagesPage'));
 const RestaurantLandingPage = lazy(() => import('@/pages/restaurant/RestaurantLandingPage'));
 const MenuPage = lazy(() => import('@/pages/restaurant/MenuPage'));
 const ProductPage = lazy(() => import('@/pages/restaurant/ProductPage'));
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
       { index: true, element: <PageLoader><AdminOverviewPage /></PageLoader> },
       { path: 'restaurants', element: <PageLoader><AdminRestaurantsPage /></PageLoader> },
       { path: 'subscriptions', element: <PageLoader><AdminSubscriptionsPage /></PageLoader> },
+      { path: 'contact', element: <PageLoader><AdminContactMessagesPage /></PageLoader> },
     ],
   },
   {

@@ -237,27 +237,33 @@ export const translations: Record<string, { en: string; ar: string }> = {
 
   // ——— Pricing ———
   'pricing.title': { en: 'Simple pricing', ar: 'أسعار بسيطة' },
-  'pricing.subtitle': { en: 'Monthly or yearly. Cancel anytime.', ar: 'شهري أو سنوي. إلغاء في أي وقت.' },
-  'pricing.perMonth': { en: '/month', ar: '/شهر' },
-  'pricing.billedYearly': { en: 'or €{yearly}/month billed yearly', ar: 'أو €{yearly}/شهر مدفوعة سنوياً' },
+  'pricing.subtitle': { en: 'One yearly plan. First month free.', ar: 'خطة سنوية واحدة. الشهر الأول مجاني.' },
+  'pricing.perYear': { en: '/year', ar: '/سنة' },
+  'pricing.firstMonthFreeNote': { en: 'First month free. Then $50 per year.', ar: 'الشهر الأول مجاني. ثم 50$ في السنة.' },
   'pricing.getStarted': { en: 'Get started', ar: 'ابدأ' },
-  'pricing.basic': { en: 'Basic', ar: 'أساسي' },
+  'pricing.plan': { en: 'Yearly plan', ar: 'الخطة السنوية' },
+  'pricing.planDesc': { en: 'Everything you need to run your digital store', ar: 'كل ما تحتاجه لتشغيل متجرك الرقمي' },
   'pricing.pro': { en: 'Pro', ar: 'احترافي' },
-  'pricing.basicDesc': { en: 'Perfect for small cafés and food trucks', ar: 'مثالي للمقاهي الصغيرة وعربات الطعام' },
   'pricing.proDesc': { en: 'For growing restaurants and chains', ar: 'للمطاعم والسلسلات النامية' },
-  'pricing.feature1Restaurant': { en: '1 restaurant', ar: 'مطعم واحد' },
-  'pricing.featureUnlimited': { en: 'Unlimited menu items', ar: 'عناصر قائمة غير محدودة' },
-  'pricing.featureQR': { en: 'QR code & link', ar: 'رمز QR ورابط' },
-  'pricing.featureLanding': { en: 'Landing page', ar: 'صفحة هبوط' },
-  'pricing.featureEmail': { en: 'Email support', ar: 'دعم بريد إلكتروني' },
-  'pricing.featureEverything': { en: 'Everything in Basic', ar: 'كل ما في الأساسي' },
+  'pricing.featureCustomize': { en: 'Store customization', ar: 'توفير تخصيص للمتجر' },
+  'pricing.featureUnlimitedOrders': {
+    en: 'Handles unlimited orders and up to 10,000 users at the same time without downtime or lost customers',
+    ar: 'المتجر يستطيع العمل تحت عدد غير محدود من الطلبات ودون توقف، ويعمل تحت الضغط حتى 10,000 مستخدم في نفس الوقت دون خسارة الزبائن',
+  },
+  'pricing.featureBranches': { en: 'Ability to add branches', ar: 'إمكانية إضافة أفرع' },
+  'pricing.featureWhatsAppOrder': {
+    en: 'WhatsApp order button for visitors browsing from outside the store',
+    ar: 'يوجد زر طلب على الواتساب لمن يتصفح الموقع من خارج المحل',
+  },
+  'pricing.featureFirstMonthFree': { en: 'First month free', ar: 'أول شهر مجاني' },
+  'pricing.featureFreeMaintenance': { en: 'Free maintenance if something breaks', ar: 'صيانة مجانية في حال حدث عطل' },
+  'pricing.featureEverything': { en: 'Everything in the yearly plan', ar: 'كل ما في الخطة السنوية' },
   'pricing.featureAnalytics': { en: 'Menu views & QR analytics', ar: 'مشاهدات القائمة وتحليلات QR' },
   'pricing.featurePriority': { en: 'Priority support', ar: 'دعم أولوية' },
   'pricing.featureBranding': { en: 'Custom branding', ar: 'هوية مخصصة' },
   'pricing.featureNoBranding': { en: 'Remove MenuQR branding', ar: 'إزالة شعار MenuQR' },
-  'pricing.popular': { en: 'Most popular', ar: 'الأكثر شيوعاً' },
   'pricing.includes': { en: "What's included", ar: 'ما الذي يتضمنه' },
-  'pricing.questions': { en: 'Have questions about the plans?', ar: 'لديك أسئلة حول الخطط؟' },
+  'pricing.questions': { en: 'Have questions about the plan?', ar: 'لديك أسئلة حول الخطة؟' },
 
   // ——— Features ———
   'features.title': { en: 'Everything you need to go digital', ar: 'كل ما تحتاجه للتحول الرقمي' },
@@ -283,11 +289,16 @@ export const translations: Record<string, { en: string; ar: string }> = {
   // ——— Contact ———
   'contact.title': { en: 'Contact us', ar: 'اتصل بنا' },
   'contact.subtitle': { en: 'Have a question or need help? Send us a message.', ar: 'لديك سؤال أو تحتاج مساعدة؟ أرسل لنا رسالة.' },
+  'contact.phone': { en: 'Phone', ar: 'رقم الهاتف' },
   'contact.message': { en: 'Message', ar: 'الرسالة' },
   'contact.send': { en: 'Send', ar: 'إرسال' },
+  'contact.sending': { en: 'Sending…', ar: 'جاري الإرسال…' },
   'contact.placeholderName': { en: 'Your name', ar: 'اسمك' },
   'contact.placeholderEmail': { en: 'you@example.com', ar: 'you@example.com' },
+  'contact.placeholderPhone': { en: '+963 9XX XXX XXX', ar: '+963 9XX XXX XXX' },
   'contact.placeholderMessage': { en: 'Your message', ar: 'رسالتك' },
+  'contact.success': { en: 'Message sent. We will get back to you soon.', ar: 'تم إرسال الرسالة. سنتواصل معك قريباً.' },
+  'contact.failed': { en: 'Could not send the message. Please try again.', ar: 'تعذر إرسال الرسالة. حاول مرة أخرى.' },
 };
 
 function interpolate(str: string, params: Record<string, string>): string {

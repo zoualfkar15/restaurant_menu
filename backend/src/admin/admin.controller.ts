@@ -13,15 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { SubscriptionPlan, SubscriptionStatus, Currency } from '@prisma/client';
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+import { slugify } from '../common/slugify';
 
 @Controller('admin')
 @UseGuards(ThrottlerGuard, JwtAuthGuard, RolesGuard)
@@ -77,7 +69,7 @@ export class AdminController {
     if (user.restaurantId) throw new BadRequestException('You already have a restaurant assigned');
     const name = body?.name?.trim();
     if (!name || name.length < 2) throw new BadRequestException('Restaurant name is required (at least 2 characters)');
-    let slug = slugify(name);
+    let slug = slugify(name, 'restaurant');
     const existing = await this.prisma.restaurant.findUnique({ where: { slug } });
     if (existing) slug = `${slug}-${Date.now().toString(36)}`;
     const restaurant = await this.prisma.restaurant.create({

@@ -1,5 +1,7 @@
+const shimmer = 'animate-pulse bg-stone-200/80';
+
 export function Skeleton({ className = '' }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-stone-200/80 ${className}`} />;
+  return <div className={`${shimmer} rounded-lg ${className}`} />;
 }
 
 function CardSkeleton() {
@@ -22,7 +24,7 @@ function CardSkeleton() {
 export function AboutPageSkeleton() {
   return (
     <div className="menu-bg min-h-screen pb-12" aria-busy="true" aria-live="polite">
-      <div className="hero-fallback h-[250px] animate-pulse rounded-b-[32px] sm:h-[280px] lg:h-[320px] lg:rounded-b-[40px]" />
+      <Skeleton className="h-[250px] rounded-none rounded-b-[32px] sm:h-[280px] lg:h-[320px] lg:rounded-b-[40px]" />
       <div className="relative z-10 mx-3 -mt-7 sm:mx-4 lg:mx-auto lg:-mt-10 lg:max-w-[1100px] lg:px-8">
         <div className="rounded-[28px] bg-white px-4 pb-6 pt-5 shadow-menu-lg ring-1 ring-menu-border/80 sm:px-6 lg:rounded-[32px] lg:px-8 lg:pb-10 lg:pt-8">
           <div className="flex flex-col gap-3 md:flex-row">
@@ -56,12 +58,12 @@ export function AboutPageSkeleton() {
 export function MenuPageSkeleton() {
   return (
     <div className="menu-bg min-h-screen pb-12" aria-busy="true" aria-live="polite">
-      <div className="hero-fallback h-[250px] animate-pulse rounded-b-[32px] sm:h-[280px] lg:h-[320px] lg:rounded-b-[40px]" />
+      <Skeleton className="h-[250px] rounded-none rounded-b-[32px] sm:h-[280px] lg:h-[320px] lg:rounded-b-[40px]" />
       <div className="relative z-10 mx-3 -mt-7 sm:mx-4 lg:mx-auto lg:-mt-10 lg:max-w-[1400px] lg:px-8">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start lg:gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:gap-8">
           <div className="rounded-[28px] bg-white px-4 pb-6 pt-6 shadow-menu-lg ring-1 ring-menu-border/80 sm:px-6 lg:rounded-[32px] lg:px-8">
             <Skeleton className="h-12 w-full rounded-2xl" />
-            <div className="mt-3 flex gap-3 overflow-hidden">
+            <div className="mt-3 flex gap-3 overflow-hidden pb-2 pt-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex w-[4.65rem] shrink-0 flex-col items-center gap-1.5">
                   <Skeleton className="h-[3.85rem] w-[3.85rem] rounded-[1.35rem]" />

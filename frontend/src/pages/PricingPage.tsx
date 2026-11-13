@@ -3,11 +3,36 @@ import { useLocale } from '@/lib/locale';
 import { PageContainer, PageHero, SiteLayout } from '@/components/SiteLayout';
 import { primaryButtonClass, secondaryButtonClass } from '@/components/SiteForm';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { CheckIcon, StarIcon } from '@/components/menu/icons';
+import { CheckIcon } from '@/components/menu/icons';
 
 const planKeys = [
-  { nameKey: 'pricing.basic', descKey: 'pricing.basicDesc', monthly: 19, yearly: 15, features: ['pricing.feature1Restaurant', 'pricing.featureUnlimited', 'pricing.featureQR', 'pricing.featureLanding', 'pricing.featureEmail'], highlighted: false },
-  { nameKey: 'pricing.pro', descKey: 'pricing.proDesc', monthly: 39, yearly: 31, features: ['pricing.featureEverything', 'pricing.featureAnalytics', 'pricing.featurePriority', 'pricing.featureBranding', 'pricing.featureNoBranding'], highlighted: true },
+  {
+    nameKey: 'pricing.plan',
+    descKey: 'pricing.planDesc',
+    yearly: 50,
+    features: [
+      'pricing.featureCustomize',
+      'pricing.featureUnlimitedOrders',
+      'pricing.featureBranches',
+      'pricing.featureWhatsAppOrder',
+      'pricing.featureFirstMonthFree',
+      'pricing.featureFreeMaintenance',
+    ],
+    highlighted: true,
+  },
+  // {
+  //   nameKey: 'pricing.pro',
+  //   descKey: 'pricing.proDesc',
+  //   yearly: 50,
+  //   features: [
+  //     'pricing.featureEverything',
+  //     'pricing.featureAnalytics',
+  //     'pricing.featurePriority',
+  //     'pricing.featureBranding',
+  //     'pricing.featureNoBranding',
+  //   ],
+  //   highlighted: true,
+  // },
 ];
 
 export default function PricingPage() {
@@ -19,7 +44,7 @@ export default function PricingPage() {
       <PageHero title={t('pricing.title')} subtitle={t('pricing.subtitle')} />
 
       <PageContainer size="md" className="lg:p-6">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="mx-auto max-w-lg">
           {planKeys.map((plan) => (
             <article
               key={plan.nameKey}
@@ -30,13 +55,6 @@ export default function PricingPage() {
                   : 'bg-menu-surface ring-1 ring-menu-border'
               }`}
             >
-              {plan.highlighted && (
-                <span className="absolute -top-3 end-6 inline-flex items-center gap-1 rounded-full bg-menu-accent px-3 py-1 text-xs font-extrabold text-white shadow-menu-md">
-                  <StarIcon size={12} />
-                  {t('pricing.popular')}
-                </span>
-              )}
-
               <h2 id={`${plan.nameKey}-title`} className="text-xl font-extrabold">
                 {t(plan.nameKey)}
               </h2>
@@ -44,20 +62,20 @@ export default function PricingPage() {
 
               <div className="mt-6 flex items-baseline gap-1.5">
                 <span className="text-4xl font-extrabold tabular-nums tracking-tight" dir="ltr">
-                  €{plan.monthly}
+                  ${plan.yearly}
                 </span>
-                <span className={`text-sm font-semibold ${plan.highlighted ? 'text-white/70' : 'text-menu-ink-muted'}`}>{t('pricing.perMonth')}</span>
+                <span className={`text-sm font-semibold ${plan.highlighted ? 'text-white/70' : 'text-menu-ink-muted'}`}>{t('pricing.perYear')}</span>
               </div>
               <p className={`mt-1 text-xs font-medium ${plan.highlighted ? 'text-white/60' : 'text-menu-ink-muted'}`}>
-                {t('pricing.billedYearly', { yearly: String(plan.yearly) })}
+                {t('pricing.firstMonthFreeNote')}
               </p>
 
               <p className={`mt-6 text-xs font-bold uppercase tracking-wide ${plan.highlighted ? 'text-white/60' : 'text-menu-ink-muted'}`}>{t('pricing.includes')}</p>
-              <ul className="mt-3 flex-1 space-y-2.5">
+              <ul className="mt-3 flex-1 space-y-3">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-[15px] font-semibold">
+                  <li key={f} className="flex items-start gap-2.5 text-[15px] font-semibold leading-snug">
                     <span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                      className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
                         plan.highlighted ? 'bg-white/15 text-white' : 'bg-primary-50 text-primary-700'
                       }`}
                     >

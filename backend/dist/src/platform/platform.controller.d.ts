@@ -265,4 +265,17 @@ export declare class PlatformController {
         totalMenuViews: number;
         totalQrScans: number;
     }>;
+    listContactMessages(skip?: number, take?: number): Promise<{
+        data: {
+            id: string;
+            email: string;
+            name: string;
+            createdAt: Date;
+            phone: string;
+            message: string;
+        }[];
+        total: number;
+        skip: number;
+        take: number;
+    }>;
 }
